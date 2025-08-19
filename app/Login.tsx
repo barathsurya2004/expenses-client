@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/AuthContext";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Button, Text, TextInput, View } from "react-native";
 
 export default function Login() {
@@ -8,6 +8,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const router = useRouter();
   const auth = useAuth(); // Assuming you have an Auth context or hook
+
+  useEffect(() => {
+    if (auth.user) {
+      router.replace("/(tabs)/Index");
+    }
+  }, [auth.user]);
 
   const handleLogin = async () => {
     if (!username || !password) {

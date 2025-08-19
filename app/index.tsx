@@ -1,10 +1,17 @@
+import { useAuth } from "@/hooks/AuthContext";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Text, View } from "react-native";
 
 export default function Home() {
   const router = useRouter();
   const [showChoice, setShowChoice] = useState(true);
+  const auth = useAuth(); // Assuming you have an Auth context or hook
+  useEffect(() => {
+    if (auth.user) {
+      router.replace("/(tabs)/Index");
+    }
+  }, [auth]);
 
   if (showChoice) {
     return (

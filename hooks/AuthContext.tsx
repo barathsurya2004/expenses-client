@@ -1,5 +1,12 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import React, { createContext, ReactNode, useContext, useState } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface UserInfo {
   username: string;
@@ -28,6 +35,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserInfo | null>(null);
 
+  // Check AsyncStorage for token and user on initialization
+  useEffect(() => {
+    const loadSession = async () => {
+      const storedToken = await AsyncStorage.getItem("authToken");
+      const storedUser = await AsyncStorage.getItem("authUser");
+
+      if (storedToken) {
+        setToken(storedToken);
+      }
+
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    };
+
+    loadSession();
+  }, []);
+
   // Mock server call for login
   const login = async (username: string, password: string) => {
     await axios
@@ -35,9 +60,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         username,
         password,
       })
-      .then((response) => {
-        setUser({ username, userId: response.data.user_id });
+      .then(async (response) => {
+        const userData = { username, userId: response.data.user_id };
+        setUser(userData);
         setToken(response.data.auth_token);
+
+        // Store in AsyncStorage
+        await AsyncStorage.setItem("authToken", response.data.auth_token);
+        await AsyncStorage.setItem("authUser", JSON.stringify(userData));
       })
       .catch((error) => {
         console.error("Login error:", error);
@@ -70,9 +100,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
   };
 
-  const logout = () => {
+  // Update logout to clear AsyncStorage
+  const logout = async () => {
     setToken(null);
     setUser(null);
+
+    // Clear AsyncStorage
+    await AsyncStorage.removeItem("authToken");
+    await AsyncStorage.removeItem("authUser");
   };
 
   const getUserInfo = async () => {

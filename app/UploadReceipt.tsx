@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/AuthContext";
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, Button, Image, Platform, Text, View } from "react-native";
 
 export default function UploadReceipt() {
@@ -13,6 +13,12 @@ export default function UploadReceipt() {
   } | null>(null);
   const router = useRouter();
   const auth = useAuth();
+
+  useEffect(() => {
+    if (!auth.user) {
+      router.replace("/");
+    }
+  }, [auth.user]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -62,7 +68,6 @@ export default function UploadReceipt() {
           type: fileType,
         } as any);
       }
-      formData.append("testing", "test");
       const headers = {
         "Content-Type": "multipart/form-data",
         Authorization: await auth.getToken(), // Assuming you have a method to get the token
