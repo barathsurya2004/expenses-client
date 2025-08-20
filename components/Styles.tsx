@@ -23,11 +23,11 @@ export const Styles = StyleSheet.create({
   },
   BlueBText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 17,
   },
   WhiteBText: {
     color: "black",
-    fontSize: 16,
+    fontSize: 17,
   },
   inputBox: {
     width: "100%",

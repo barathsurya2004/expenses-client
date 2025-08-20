@@ -42,6 +42,7 @@ export default function Login() {
         justifyContent: "flex-start",
         alignItems: "center",
         padding: 20,
+        backgroundColor: "white",
       }}
     >
       <Text style={{ fontSize: 24, marginBottom: 20, color: "black" }}>

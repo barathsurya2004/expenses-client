@@ -124,14 +124,14 @@ export default function UploadReceipt() {
           onPress={pickImage}
           style={Styles.buttonBlue}
         >
-          <Text style={{ color: "white" }}>Pick an Image</Text>
+          <Text style={Styles.BlueBText}>Pick an Image</Text>
         </ClickButton>
         <ClickButton
           title="Take a Photo"
           onPress={takePhoto}
           style={Styles.buttonWhite}
         >
-          <Text style={{ color: "black" }}>Take a Photo</Text>
+          <Text style={Styles.WhiteBText}>Take a Photo</Text>
         </ClickButton>
       </View>
       {image && (
