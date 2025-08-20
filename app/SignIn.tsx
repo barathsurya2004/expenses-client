@@ -1,7 +1,9 @@
+import ClickButton from "@/components/Button";
+import { Styles } from "@/components/Styles";
 import { useAuth } from "@/hooks/AuthContext";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Button, Text, TextInput, View } from "react-native";
+import { Alert, Text, TextInput, View } from "react-native";
 
 export default function SignIn() {
   const [username, setUsername] = useState("");
@@ -42,7 +44,7 @@ export default function SignIn() {
     <View
       style={{
         flex: 1,
-        justifyContent: "center",
+        justifyContent: "flex-start",
         alignItems: "center",
         padding: 20,
       }}
@@ -54,25 +56,25 @@ export default function SignIn() {
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
-        style={{ width: "100%", borderWidth: 1, marginBottom: 10, padding: 8 }}
+        style={Styles.inputBox}
       />
       <TextInput
         placeholder="First Name"
         value={firstname}
         onChangeText={setFirstname}
-        style={{ width: "100%", borderWidth: 1, marginBottom: 10, padding: 8 }}
+        style={Styles.inputBox}
       />
       <TextInput
         placeholder="Last Name"
         value={lastname}
         onChangeText={setLastname}
-        style={{ width: "100%", borderWidth: 1, marginBottom: 10, padding: 8 }}
+        style={Styles.inputBox}
       />
       <TextInput
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
-        style={{ width: "100%", borderWidth: 1, marginBottom: 10, padding: 8 }}
+        style={Styles.inputBox}
         keyboardType="email-address"
       />
       <TextInput
@@ -80,16 +82,29 @@ export default function SignIn() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={{ width: "100%", borderWidth: 1, marginBottom: 10, padding: 8 }}
+        style={Styles.inputBox}
       />
       <TextInput
         placeholder="Confirm Password"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
-        style={{ width: "100%", borderWidth: 1, marginBottom: 20, padding: 8 }}
+        style={Styles.inputBox}
       />
-      <Button title="Sign In" onPress={handleSignIn} />
+      <View style={{ flex: 1 }} />
+      <ClickButton
+        title="Sign In"
+        onPress={handleSignIn}
+        style={Styles.buttonBlue}
+      >
+        <Text style={Styles.BlueBText}>Sign In</Text>
+      </ClickButton>
+      <Text
+        style={{ marginTop: 20, color: "gray" }}
+        onPress={() => router.replace("/Login")}
+      >
+        Already have an account?
+      </Text>
     </View>
   );
 }

@@ -1,7 +1,9 @@
+import ClickButton from "@/components/Button";
+import { Styles } from "@/components/Styles";
 import { useAuth } from "@/hooks/AuthContext";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Button, Text, TextInput, View } from "react-native";
+import { Alert, Text, TextInput, View } from "react-native";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -11,6 +13,7 @@ export default function Login() {
 
   useEffect(() => {
     if (auth.user) {
+      router.dismissAll();
       router.replace("/(tabs)/Index");
     }
   }, [auth.user]);
@@ -28,6 +31,7 @@ export default function Login() {
     console.log("Logged in user:", user);
 
     // Simulate successful login
+    router.dismissAll();
     router.replace("/(tabs)/Index");
   };
 
@@ -35,7 +39,7 @@ export default function Login() {
     <View
       style={{
         flex: 1,
-        justifyContent: "center",
+        justifyContent: "flex-start",
         alignItems: "center",
         padding: 20,
       }}
@@ -47,16 +51,29 @@ export default function Login() {
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
-        style={{ width: "100%", borderWidth: 1, marginBottom: 10, padding: 8 }}
+        style={Styles.inputBox}
       />
       <TextInput
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={{ width: "100%", borderWidth: 1, marginBottom: 20, padding: 8 }}
+        style={Styles.inputBox}
       />
-      <Button title="Login" onPress={handleLogin} />
+      <View style={{ flex: 1 }} />
+      <ClickButton
+        title="Login"
+        onPress={handleLogin}
+        style={Styles.buttonBlue}
+      >
+        <Text style={Styles.BlueBText}>Login</Text>
+      </ClickButton>
+      <Text
+        style={{ marginTop: 20, color: "gray" }}
+        onPress={() => router.replace("/SignIn")}
+      >
+        Don't have an account?
+      </Text>
     </View>
   );
 }
