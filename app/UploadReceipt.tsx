@@ -1,9 +1,11 @@
+import ClickButton from "@/components/Button";
+import { Styles } from "@/components/Styles";
 import { useAuth } from "@/hooks/AuthContext";
 import axios from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, Button, Image, Platform, Text, View } from "react-native";
+import { Alert, Image, Platform, Text, View } from "react-native";
 
 export default function UploadReceipt() {
   const [image, setImage] = useState<string | null>(null);
@@ -100,12 +102,37 @@ export default function UploadReceipt() {
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 24, marginVertical: 20 }}>Upload Receipt</Text>
-      <View style={{ marginVertical: 20 }}>
-        <Button title="Pick Image from Gallery" onPress={pickImage} />
-        <View style={{ height: 10 }} />
-        <Button title="Take Photo" onPress={takePhoto} />
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "flex-start",
+        alignItems: "center",
+        backgroundColor: "white",
+      }}
+    >
+      <Text style={{ fontSize: 24, marginVertical: 20, textAlign: "center" }}>
+        How would you like to add your expenses ?
+      </Text>
+      <View
+        style={{
+          width: "100%",
+          paddingHorizontal: 20,
+        }}
+      >
+        <ClickButton
+          title="Pick an Image"
+          onPress={pickImage}
+          style={Styles.buttonBlue}
+        >
+          <Text style={{ color: "white" }}>Pick an Image</Text>
+        </ClickButton>
+        <ClickButton
+          title="Take a Photo"
+          onPress={takePhoto}
+          style={Styles.buttonWhite}
+        >
+          <Text style={{ color: "black" }}>Take a Photo</Text>
+        </ClickButton>
       </View>
       {image && (
         <View style={{ alignItems: "center" }}>
@@ -118,7 +145,13 @@ export default function UploadReceipt() {
             }}
             resizeMode="contain"
           />
-          <Button title="Upload Image" onPress={uploadImage} />
+          <ClickButton
+            title="Upload"
+            style={Styles.buttonBlue}
+            onPress={uploadImage}
+          >
+            <Text style={Styles.BlueBText}>Upload Reciept</Text>
+          </ClickButton>
         </View>
       )}
     </View>

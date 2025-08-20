@@ -92,19 +92,29 @@ export default function SignIn() {
         style={Styles.inputBox}
       />
       <View style={{ flex: 1 }} />
-      <ClickButton
-        title="Sign In"
-        onPress={handleSignIn}
-        style={Styles.buttonBlue}
+      <View
+        style={{
+          width: "100%",
+          margin: 20,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
       >
-        <Text style={Styles.BlueBText}>Sign In</Text>
-      </ClickButton>
-      <Text
-        style={{ marginTop: 20, color: "gray" }}
-        onPress={() => router.replace("/Login")}
-      >
-        Already have an account?
-      </Text>
+        <ClickButton
+          title="Sign In"
+          onPress={handleSignIn}
+          style={Styles.buttonBlue}
+        >
+          <Text style={Styles.BlueBText}>Sign In</Text>
+        </ClickButton>
+        <Text
+          style={{ marginTop: 20, color: "gray" }}
+          onPress={() => router.replace("/Login")}
+        >
+          Already have an account?
+        </Text>
+      </View>
     </View>
   );
 }

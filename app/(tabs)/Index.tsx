@@ -1,8 +1,11 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Button, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
+import ClickButton from "@/components/Button";
+import { Styles } from "@/components/Styles";
 import { useAuth } from "@/hooks/AuthContext";
+import { Entypo } from "@expo/vector-icons";
 
 export default function Index() {
   const router = useRouter();
@@ -20,12 +23,24 @@ export default function Index() {
   }, [auth.user]);
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "white",
+      }}
+    >
       <Text style={{ fontSize: 24, marginBottom: 20 }}>Dashboard</Text>
-      <Button
-        title="Upload the receipt"
-        onPress={() => router.push("/UploadReceipt")}
-      />
+      <ClickButton
+        title="new-expense"
+        onPress={() => {
+          router.push("/UploadReceipt");
+        }}
+        style={Styles.newExpense}
+      >
+        <Entypo name={"plus"} size={40} color={"white"} />
+      </ClickButton>
     </View>
   );
 }

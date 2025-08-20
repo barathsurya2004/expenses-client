@@ -5,7 +5,12 @@ import React from "react";
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <Stack screenOptions={{ headerShown: true }}>
+      <Stack
+        screenOptions={{
+          headerShown: true,
+          headerTitleAlign: "center", // Align all headers to the center
+        }}
+      >
         <Stack.Screen
           name="index"
           options={{ title: "Home", headerShown: false }}
@@ -16,10 +21,10 @@ export default function RootLayout() {
             title: "Login",
           }}
         />
-        <Stack.Screen name="(tabs)" options={{ title: "Home" }} />
+        <Stack.Screen name="(tabs)" options={{ title: "Dashboard" }} />
         <Stack.Screen
           name="UploadReceipt"
-          options={{ title: "Upload Receipt" }}
+          options={{ title: "Add Expenses" }}
         />
         <Stack.Screen
           name="SignIn"
