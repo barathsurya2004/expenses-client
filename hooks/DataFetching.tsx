@@ -20,6 +20,7 @@ export const DataFetchingProvider = ({ children }: { children: ReactNode }) => {
   const auth = useAuth();
   const getHeatMapData = async (): Promise<SpendingData[] | null> => {
     const token = await auth.getToken();
+    console.log(token);
     if (!token) {
       console.error("No token found, cannot fetch heatmap data");
       return null;

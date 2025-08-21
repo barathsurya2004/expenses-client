@@ -64,7 +64,7 @@ export default function Index() {
       return;
     }
     const diff = currentOffset - scrollOffset.current;
-    if (Math.abs(diff) < 0.05) return; // Ignore small scrolls to prevent flickering
+    if (Math.abs(diff) < 0.2) return; // Ignore small scrolls to prevent flickering
 
     if (diff > 0) {
       shrink();

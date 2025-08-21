@@ -1,17 +1,42 @@
 import { useDataFetching } from "@/hooks/DataFetching";
 import React, { useEffect, useState } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 const SpendingHeatmap = () => {
   // Hardcoded data for the weekly spending bars.
   // The 'height' value represents the percentage fill of the bar.
   interface SpendingData {
+    amount: number; // Percentage height of the bar
+  }
+
+  interface WeekDay {
+    day: string;
+    spending: SpendingData[];
+  }
+
+  interface PlotWeek {
     day: string;
     height: number; // Percentage height of the bar
   }
 
-  const [spendingData, setSpendingData] = useState<SpendingData[]>([]);
-  const [animatedHeights, setAnimatedHeights] = useState<Animated.Value[]>([]);
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thurday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+  const [weekData, setWeekData] = useState<PlotWeek[]>(() =>
+    days.map((day) => ({
+      day,
+      height: 0,
+    }))
+  );
+  const [spendingData, setSpendingData] = useState<WeekDay[]>([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+
   const { getHeatMapData } = useDataFetching();
   const fetchSpendingData = async () => {
     try {
@@ -20,22 +45,48 @@ const SpendingHeatmap = () => {
         console.error("No data received from the server");
         return;
       }
-
-      let totalAmount = 0;
-      let maxHeight = 0;
-      data.forEach((item: any) => {
-        totalAmount += parseFloat(item.amount);
-        maxHeight = Math.max(maxHeight, parseFloat(item.amount));
+      let formattedData: WeekDay[] = [];
+      data.forEach((item) => {
+        const existingDay = formattedData.find((d) => d.day === item.day);
+        if (existingDay) {
+          existingDay.spending.push({
+            amount: parseFloat(item.amount), // Assuming amount is in cents, convert to percentage
+          });
+        } else {
+          formattedData.push({
+            day: item.day,
+            spending: [
+              {
+                amount: parseFloat(item.amount), // Assuming amount is in cents, convert to percentage
+              },
+            ],
+          });
+        }
       });
-      const formattedData = data.map((item: any) => {
-        const height = (parseFloat(item.amount) / maxHeight) * 100; // Calculate height as a percentage
+
+      let maxDaySpent = 0;
+      formattedData.forEach((day) => {
+        const totalSpent = day.spending.reduce((sum, s) => sum + s.amount, 0);
+        setTotalAmount(totalAmount + totalSpent);
+        if (totalSpent > maxDaySpent) {
+          maxDaySpent = totalSpent;
+        }
+      });
+
+      let formattedWeekData: PlotWeek[] = formattedData.map((day) => {
+        const totalSpent = day.spending.reduce((sum, s) => sum + s.amount, 0);
         return {
-          day: item.day,
-          height: height,
+          day: day.day,
+          height: (totalSpent / maxDaySpent) * 100, // Convert to percentage
         };
       });
-      console.log(formattedData);
+
+      console.log("Total amount spent:", totalAmount);
+      console.log("Max amount spent in a day:", maxDaySpent);
+
+      console.log("Formatted spending data:", formattedData);
       setSpendingData(formattedData);
+      setWeekData(formattedWeekData);
     } catch (error) {
       console.error("Error fetching spending data:", error);
     }
@@ -43,24 +94,6 @@ const SpendingHeatmap = () => {
   useEffect(() => {
     fetchSpendingData();
   }, [getHeatMapData]);
-
-  useEffect(() => {
-    // Initialize animated values for each bar
-    const initialHeights = spendingData.map(() => new Animated.Value(0));
-    setAnimatedHeights(initialHeights);
-
-    // Animate each bar to its respective height
-    Animated.stagger(
-      100, // Delay between animations
-      initialHeights.map((animatedValue, index) =>
-        Animated.timing(animatedValue, {
-          toValue: spendingData[index]?.height || 0,
-          duration: 500,
-          useNativeDriver: false,
-        })
-      )
-    ).start();
-  }, [spendingData]);
 
   return (
     <View style={styles.container}>
@@ -73,7 +106,7 @@ const SpendingHeatmap = () => {
         </View>
       </View>
       <View style={styles.mapContainer}>
-        {spendingData.map((data, index) => (
+        {weekData.map((data, index) => (
           <View key={index} style={styles.barContainer}>
             <View
               style={{
