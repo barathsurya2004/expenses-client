@@ -1,18 +1,66 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useDataFetching } from "@/hooks/DataFetching";
+import React, { useEffect, useState } from "react";
+import { Animated, StyleSheet, Text, View } from "react-native";
 
 const SpendingHeatmap = () => {
   // Hardcoded data for the weekly spending bars.
   // The 'height' value represents the percentage fill of the bar.
-  const spendingData = [
-    { day: "Mon", height: 90 },
-    { day: "Tue", height: 100 },
-    { day: "Wed", height: 90 },
-    { day: "Thu", height: 80 },
-    { day: "Fri", height: 80 },
-    { day: "Sat", height: 30 },
-    { day: "Sun", height: 30 },
-  ];
+  interface SpendingData {
+    day: string;
+    height: number; // Percentage height of the bar
+  }
+
+  const [spendingData, setSpendingData] = useState<SpendingData[]>([]);
+  const [animatedHeights, setAnimatedHeights] = useState<Animated.Value[]>([]);
+  const { getHeatMapData } = useDataFetching();
+  const fetchSpendingData = async () => {
+    try {
+      const data = await getHeatMapData();
+      if (!data) {
+        console.error("No data received from the server");
+        return;
+      }
+
+      let totalAmount = 0;
+      let maxHeight = 0;
+      data.forEach((item: any) => {
+        totalAmount += parseFloat(item.amount);
+        maxHeight = Math.max(maxHeight, parseFloat(item.amount));
+      });
+      const formattedData = data.map((item: any) => {
+        const height = (parseFloat(item.amount) / maxHeight) * 100; // Calculate height as a percentage
+        return {
+          day: item.day,
+          height: height,
+        };
+      });
+      console.log(formattedData);
+      setSpendingData(formattedData);
+    } catch (error) {
+      console.error("Error fetching spending data:", error);
+    }
+  };
+  useEffect(() => {
+    fetchSpendingData();
+  }, [getHeatMapData]);
+
+  useEffect(() => {
+    // Initialize animated values for each bar
+    const initialHeights = spendingData.map(() => new Animated.Value(0));
+    setAnimatedHeights(initialHeights);
+
+    // Animate each bar to its respective height
+    Animated.stagger(
+      100, // Delay between animations
+      initialHeights.map((animatedValue, index) =>
+        Animated.timing(animatedValue, {
+          toValue: spendingData[index]?.height || 0,
+          duration: 500,
+          useNativeDriver: false,
+        })
+      )
+    ).start();
+  }, [spendingData]);
 
   return (
     <View style={styles.container}>
@@ -34,13 +82,11 @@ const SpendingHeatmap = () => {
               }}
             >
               <View
-                style={[
-                  styles.bar,
-                  {
-                    height: `${data.height}%`,
-                    backgroundColor: data.height > 80 ? "#0d78f2" : "#b0c4de",
-                  },
-                ]}
+                style={{
+                  ...styles.bar,
+                  height: `${data.height}%`, // Set height as a percentage
+                  backgroundColor: data.height > 80 ? "#0d78f2" : "#b0c4de", // Color based on height
+                }}
               />
             </View>
             <Text style={styles.label}>{data.day}</Text>
@@ -94,7 +140,8 @@ const styles = StyleSheet.create({
     // Styles for the heatmap chart area
     flexDirection: "row",
     justifyContent: "space-between", // Ensures even spacing between bars
-    minHeight: 200,
+    width: "100%",
+    aspectRatio: 1, // Maintains a square aspect ratio
     alignItems: "flex-end", // Aligns the bars to the bottom
   },
   barContainer: {

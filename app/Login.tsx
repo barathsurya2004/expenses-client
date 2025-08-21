@@ -13,8 +13,7 @@ export default function Login() {
 
   useEffect(() => {
     if (auth.user) {
-      router.dismissAll();
-      router.replace("/(tabs)/Index");
+      router.replace("/(tabs)/Index"); // Replace dismissAll with replace
     }
   }, [auth.user]);
 
@@ -31,7 +30,6 @@ export default function Login() {
     console.log("Logged in user:", user);
 
     // Simulate successful login
-    router.dismissAll();
     router.replace("/(tabs)/Index");
   };
 

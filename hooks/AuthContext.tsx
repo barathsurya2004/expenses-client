@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { Platform } from "react-native";
 
 interface UserInfo {
   username: string;
@@ -55,6 +56,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Mock server call for login
   const login = async (username: string, password: string) => {
+    // mock login for ios
+    if (Platform.OS === "ios") {
+      const mockUser = { username, userId: "mockUserId" };
+      setUser(mockUser);
+      const mockToken = "mockAuthToken";
+      setToken(mockToken);
+
+      return mockUser;
+    }
+
     await axios
       .post("http://localhost:8080/get-user", {
         username,

@@ -6,7 +6,6 @@ import {
   NativeSyntheticEvent,
   ScrollView,
   Text,
-  View,
 } from "react-native";
 
 import ClickButton from "@/components/Button";
@@ -14,6 +13,7 @@ import SpendingHeatmap from "@/components/SpendingHeatmap";
 import SpendingTypes from "@/components/SpendingTypes";
 import { useAuth } from "@/hooks/AuthContext";
 import { Entypo } from "@expo/vector-icons";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
   const router = useRouter();
@@ -31,23 +31,23 @@ export default function Index() {
   });
   const scrollOffset = useRef(0);
 
-  const shrinkAnimation = useRef(new Animated.Value(0)).current;
+  const shrinkAnimation = useRef(new Animated.Value(1)).current;
   const shrink = () => {
+    if (!canClick) return; // Prevent animation if not clickable
     Animated.timing(shrinkAnimation, {
       toValue: 0,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-    setCanClick(false);
+      duration: 200, // Increase duration for smoother animation
+      useNativeDriver: true, // Ensure native driver is used
+    }).start(() => setCanClick(false)); // Ensure state update happens after animation
   };
 
   const expand = () => {
+    if (canClick) return; // Prevent animation if not clickable
     Animated.timing(shrinkAnimation, {
       toValue: 1,
-      duration: 200,
-      useNativeDriver: false,
-    }).start();
-    setCanClick(true);
+      duration: 200, // Increase duration for smoother animation
+      useNativeDriver: true, // Ensure native driver is used
+    }).start(() => setCanClick(true)); // Ensure state update happens after animation
   };
 
   useEffect(() => {
@@ -57,79 +57,84 @@ export default function Index() {
   }, [auth.user]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const currentOffset = event.nativeEvent.contentOffset.y * 50;
-    let diff = currentOffset - scrollOffset.current;
-    if (diff < 0) {
-      diff += 2;
+    const currentOffset = event.nativeEvent.contentOffset.y;
+
+    if (currentOffset < 0) {
+      scrollOffset.current = 0;
+      return;
     }
-    console.log("Scroll Difference:", diff);
-    if (diff < 0) {
-      expand();
-    } else if (diff > 0) {
+    const diff = currentOffset - scrollOffset.current;
+    if (Math.abs(diff) < 0.05) return; // Ignore small scrolls to prevent flickering
+
+    if (diff > 0) {
       shrink();
+    } else if (diff < 0) {
+      expand();
     }
-    console.log(shrinkAnimation);
+
     scrollOffset.current = currentOffset;
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "white",
-        padding: 20,
-      }}
-    >
-      <ScrollView
-        style={{ flex: 1 }}
-        onScroll={handleScroll}
-        scrollEventThrottle={8} // Optimize scroll event handling
-      >
-        <Text
-          style={{
-            fontSize: 24,
-            color: "black",
-          }}
-        >
-          Spending Overview
-        </Text>
-        <SpendingHeatmap />
-        <SpendingTypes />
-      </ScrollView>
-      <Animated.View
+    <SafeAreaProvider>
+      <SafeAreaView
         style={{
-          position: "absolute",
-          bottom: 10,
-          right: 10,
-          height: shrinkAnimation.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, CreateButtonSize.height],
-          }),
-          width: shrinkAnimation.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, CreateButtonSize.width],
-          }),
-          borderRadius: shrinkAnimation.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, CreateButtonSize.borderRadius],
-          }),
-          backgroundColor: "#0d78f2",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          flex: 1,
+          padding: 20,
+          backgroundColor: "white",
         }}
+        edges={["top"]}
       >
-        <ClickButton
-          title="new-expense"
-          onPress={() => {
-            if (!canClick) return;
-            router.push("/UploadReceipt");
-          }}
-          style={{}}
+        <ScrollView
+          style={{ flex: 1 }}
+          onScroll={handleScroll}
+          scrollEventThrottle={4}
         >
-          <Entypo name={"plus"} size={20} color={"white"} />
-        </ClickButton>
-      </Animated.View>
-    </View>
+          <Text
+            style={{
+              fontSize: 24,
+              color: "black",
+            }}
+          >
+            Spending Overview
+          </Text>
+          <SpendingHeatmap />
+          <SpendingTypes />
+        </ScrollView>
+        <Animated.View
+          style={{
+            position: "absolute",
+            bottom: 10,
+            right: 10,
+            height: CreateButtonSize.height,
+            width: CreateButtonSize.width,
+            transform: [
+              {
+                scale: shrinkAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1],
+                }),
+              },
+            ],
+            borderRadius: CreateButtonSize.borderRadius,
+            backgroundColor: "#0d78f2",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ClickButton
+            title="new-expense"
+            onPress={() => {
+              if (!canClick) return;
+              router.push("/UploadReceipt");
+            }}
+            style={{}}
+          >
+            <Entypo name={"plus"} size={20} color={"white"} />
+          </ClickButton>
+        </Animated.View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }

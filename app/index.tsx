@@ -30,6 +30,7 @@ export default function Home() {
           justifyContent: "center",
           alignItems: "center",
           padding: 20,
+          backgroundColor: "white", // Changed to white for better visibility
         }}
       >
         <Text
