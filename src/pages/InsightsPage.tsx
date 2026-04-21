@@ -252,7 +252,8 @@ const InsightsPage: React.FC = () => {
                                     {data.daySpend.map(day => (
                                         <div key={day.day} className="flex-1 min-w-0 flex flex-col items-center gap-1.5">
                                             <div
-                                                className="w-full rounded-t-md"
+                                                className="w-full rounded-t-md transition-all duration-300"
+                                                title={`₹${Math.round(day.amount).toLocaleString()}`}
                                                 style={{
                                                     height: `${Math.min(Math.max(day.heightPercent, 0), 100)}%`,
                                                     background: day.isPeak && day.amount > 0 ? '#aac7ff' : '#2a2a2d',
