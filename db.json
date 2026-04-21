@@ -1,0 +1,638 @@
+{
+  "transactions": [
+    {
+      "amount": 100,
+      "merchant": "asdf",
+      "category": "Pet",
+      "date": "2026-04-21",
+      "type": "expense",
+      "icon": "receipt_long",
+      "id": "92xcwhrp0"
+    },
+    {
+      "amount": 1000,
+      "merchant": "asdf",
+      "category": "Emergency Fund",
+      "date": "2026-04-21",
+      "type": "expense",
+      "icon": "savings",
+      "id": "5d9cj1bzy"
+    },
+    {
+      "amount": 1222,
+      "merchant": "sadfsadf",
+      "category": "Emergency Fund",
+      "date": "2026-04-21",
+      "type": "expense",
+      "icon": "savings",
+      "id": "h1fck8r7w"
+    },
+    {
+      "id": "t001",
+      "merchant": "Tech Corp Ltd",
+      "category": "Salary",
+      "amount": 85000,
+      "date": "2026-04-01",
+      "type": "income",
+      "icon": "account_balance"
+    },
+    {
+      "id": "t002",
+      "merchant": "Freelance Client",
+      "category": "Freelance",
+      "amount": 15000,
+      "date": "2026-04-10",
+      "type": "income",
+      "icon": "work"
+    },
+    {
+      "id": "t003",
+      "merchant": "Property Owner",
+      "category": "Rent",
+      "amount": 25000,
+      "date": "2026-04-01",
+      "type": "expense",
+      "icon": "home"
+    },
+    {
+      "id": "t004",
+      "merchant": "Jio Fiber",
+      "category": "Internet",
+      "amount": 1499,
+      "date": "2026-04-02",
+      "type": "expense",
+      "icon": "wifi"
+    },
+    {
+      "id": "t005",
+      "merchant": "Netflix",
+      "category": "Subscriptions",
+      "amount": 649,
+      "date": "2026-04-02",
+      "type": "expense",
+      "icon": "play_circle"
+    },
+    {
+      "id": "t006",
+      "merchant": "Spotify",
+      "category": "Subscriptions",
+      "amount": 119,
+      "date": "2026-04-03",
+      "type": "expense",
+      "icon": "music_note"
+    },
+    {
+      "id": "t007",
+      "merchant": "Cult.fit",
+      "category": "Gym",
+      "amount": 2000,
+      "date": "2026-04-05",
+      "type": "expense",
+      "icon": "fitness_center"
+    },
+    {
+      "id": "t008",
+      "merchant": "HDFC Bank FD",
+      "category": "Emergency Fund",
+      "amount": 5000,
+      "date": "2026-04-01",
+      "type": "expense",
+      "icon": "savings"
+    },
+    {
+      "id": "t009",
+      "merchant": "Zerodha",
+      "category": "Investments",
+      "amount": 10000,
+      "date": "2026-04-01",
+      "type": "expense",
+      "icon": "trending_up"
+    },
+    {
+      "id": "t010",
+      "merchant": "The Fatty Bao",
+      "category": "Food & Dining",
+      "amount": 2400,
+      "date": "2026-04-03",
+      "type": "expense",
+      "icon": "restaurant"
+    },
+    {
+      "id": "t011",
+      "merchant": "Swiggy",
+      "category": "Food & Dining",
+      "amount": 450,
+      "date": "2026-04-04",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t012",
+      "merchant": "Zomato",
+      "category": "Food & Dining",
+      "amount": 620,
+      "date": "2026-04-05",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t013",
+      "merchant": "Blinkit",
+      "category": "Food & Dining",
+      "amount": 860,
+      "date": "2026-04-06",
+      "type": "expense",
+      "icon": "shopping_basket"
+    },
+    {
+      "id": "t014",
+      "merchant": "Swiggy",
+      "category": "Food & Dining",
+      "amount": 380,
+      "date": "2026-04-07",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t015",
+      "merchant": "Blinkit",
+      "category": "Food & Dining",
+      "amount": 740,
+      "date": "2026-04-08",
+      "type": "expense",
+      "icon": "shopping_basket"
+    },
+    {
+      "id": "t016",
+      "merchant": "Zomato",
+      "category": "Food & Dining",
+      "amount": 540,
+      "date": "2026-04-09",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t017",
+      "merchant": "Swiggy",
+      "category": "Food & Dining",
+      "amount": 580,
+      "date": "2026-04-10",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t018",
+      "merchant": "BigBasket",
+      "category": "Food & Dining",
+      "amount": 1800,
+      "date": "2026-04-11",
+      "type": "expense",
+      "icon": "shopping_basket"
+    },
+    {
+      "id": "t019",
+      "merchant": "Swiggy",
+      "category": "Food & Dining",
+      "amount": 290,
+      "date": "2026-04-12",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t020",
+      "merchant": "Swiggy",
+      "category": "Food & Dining",
+      "amount": 510,
+      "date": "2026-04-14",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t021",
+      "merchant": "Chai Point",
+      "category": "Food & Dining",
+      "amount": 320,
+      "date": "2026-04-15",
+      "type": "expense",
+      "icon": "local_cafe"
+    },
+    {
+      "id": "t022",
+      "merchant": "Zomato",
+      "category": "Food & Dining",
+      "amount": 880,
+      "date": "2026-04-16",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t023",
+      "merchant": "Swiggy",
+      "category": "Food & Dining",
+      "amount": 430,
+      "date": "2026-04-17",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t024",
+      "merchant": "BigBasket",
+      "category": "Food & Dining",
+      "amount": 2000,
+      "date": "2026-04-18",
+      "type": "expense",
+      "icon": "shopping_basket"
+    },
+    {
+      "id": "t025",
+      "merchant": "Barbeque Nation",
+      "category": "Food & Dining",
+      "amount": 1800,
+      "date": "2026-04-18",
+      "type": "expense",
+      "icon": "restaurant"
+    },
+    {
+      "id": "t026",
+      "merchant": "Swiggy",
+      "category": "Food & Dining",
+      "amount": 390,
+      "date": "2026-04-21",
+      "type": "expense",
+      "icon": "delivery_dining"
+    },
+    {
+      "id": "t027",
+      "merchant": "Chai Point",
+      "category": "Food & Dining",
+      "amount": 180,
+      "date": "2026-04-21",
+      "type": "expense",
+      "icon": "local_cafe"
+    },
+    {
+      "id": "t028",
+      "merchant": "Uber",
+      "category": "Transport",
+      "amount": 680,
+      "date": "2026-04-03",
+      "type": "expense",
+      "icon": "local_taxi"
+    },
+    {
+      "id": "t029",
+      "merchant": "Ola",
+      "category": "Transport",
+      "amount": 280,
+      "date": "2026-04-07",
+      "type": "expense",
+      "icon": "directions_car"
+    },
+    {
+      "id": "t030",
+      "merchant": "Uber",
+      "category": "Transport",
+      "amount": 850,
+      "date": "2026-04-10",
+      "type": "expense",
+      "icon": "local_taxi"
+    },
+    {
+      "id": "t031",
+      "merchant": "Metro Card",
+      "category": "Transport",
+      "amount": 500,
+      "date": "2026-04-11",
+      "type": "expense",
+      "icon": "train"
+    },
+    {
+      "id": "t032",
+      "merchant": "Uber",
+      "category": "Transport",
+      "amount": 760,
+      "date": "2026-04-14",
+      "type": "expense",
+      "icon": "local_taxi"
+    },
+    {
+      "id": "t033",
+      "merchant": "Rapido",
+      "category": "Transport",
+      "amount": 150,
+      "date": "2026-04-15",
+      "type": "expense",
+      "icon": "electric_bike"
+    },
+    {
+      "id": "t034",
+      "merchant": "Uber",
+      "category": "Transport",
+      "amount": 1040,
+      "date": "2026-04-17",
+      "type": "expense",
+      "icon": "local_taxi"
+    },
+    {
+      "id": "t035",
+      "merchant": "BMTC",
+      "category": "Transport",
+      "amount": 120,
+      "date": "2026-04-19",
+      "type": "expense",
+      "icon": "directions_bus"
+    },
+    {
+      "id": "t036",
+      "merchant": "Myntra",
+      "category": "Shopping",
+      "amount": 2000,
+      "date": "2026-04-03",
+      "type": "expense",
+      "icon": "shopping_bag"
+    },
+    {
+      "id": "t037",
+      "merchant": "Amazon",
+      "category": "Shopping",
+      "amount": 2800,
+      "date": "2026-04-06",
+      "type": "expense",
+      "icon": "storefront"
+    },
+    {
+      "id": "t038",
+      "merchant": "Amazon",
+      "category": "Shopping",
+      "amount": 3200,
+      "date": "2026-04-10",
+      "type": "expense",
+      "icon": "storefront"
+    },
+    {
+      "id": "t039",
+      "merchant": "Nykaa",
+      "category": "Shopping",
+      "amount": 1800,
+      "date": "2026-04-13",
+      "type": "expense",
+      "icon": "shopping_bag"
+    },
+    {
+      "id": "t040",
+      "merchant": "IKEA",
+      "category": "Shopping",
+      "amount": 1200,
+      "date": "2026-04-17",
+      "type": "expense",
+      "icon": "chair"
+    },
+    {
+      "id": "t041",
+      "merchant": "PVR Cinemas",
+      "category": "Entertainment",
+      "amount": 800,
+      "date": "2026-04-10",
+      "type": "expense",
+      "icon": "movie"
+    },
+    {
+      "id": "t042",
+      "merchant": "Bowling Club",
+      "category": "Entertainment",
+      "amount": 1200,
+      "date": "2026-04-12",
+      "type": "expense",
+      "icon": "sports"
+    },
+    {
+      "id": "t043",
+      "merchant": "Laughter Factory",
+      "category": "Entertainment",
+      "amount": 1000,
+      "date": "2026-04-17",
+      "type": "expense",
+      "icon": "theater_comedy"
+    },
+    {
+      "id": "t044",
+      "merchant": "Steam",
+      "category": "Entertainment",
+      "amount": 350,
+      "date": "2026-04-19",
+      "type": "expense",
+      "icon": "sports_esports"
+    },
+    {
+      "id": "t045",
+      "merchant": "Apollo Pharmacy",
+      "category": "Health & Fitness",
+      "amount": 1400,
+      "date": "2026-04-09",
+      "type": "expense",
+      "icon": "local_pharmacy"
+    }
+  ],
+  "goals": [
+    {
+      "id": "g001",
+      "name": "MacBook Pro M4",
+      "targetAmount": 185000,
+      "currentAmount": 62000,
+      "category": "Electronics",
+      "description": "Upgrading my primary work machine to the M4 chip for better video editing and development performance.",
+      "icon": "laptop_mac",
+      "color": "sky",
+      "eta": "2026-09-30",
+      "priority": "High"
+    },
+    {
+      "id": "g002",
+      "name": "Goa Beach Holiday",
+      "targetAmount": 75000,
+      "currentAmount": 22000,
+      "category": "Travel",
+      "description": "10-day family trip to Goa including flights, resort stay, and water sports activities.",
+      "icon": "beach_access",
+      "color": "teal",
+      "eta": "2026-12-31",
+      "priority": "Medium"
+    },
+    {
+      "id": "g003",
+      "name": "6-Month Emergency Fund",
+      "targetAmount": 300000,
+      "currentAmount": 145000,
+      "category": "Financial Security",
+      "description": "Building a 6-month safety net to cover rent and essential expenses in case of job loss or unexpected events.",
+      "icon": "shield",
+      "color": "emerald",
+      "eta": "2027-06-30",
+      "priority": "High"
+    },
+    {
+      "id": "g004",
+      "name": "Sony Alpha A7 IV",
+      "targetAmount": 195000,
+      "currentAmount": 9500,
+      "category": "Photography",
+      "description": "Full-frame mirrorless camera for travel photography, event shoots, and videography projects.",
+      "icon": "photo_camera",
+      "color": "orange",
+      "eta": "2027-03-31",
+      "priority": "Low"
+    },
+    {
+      "id": "g005",
+      "name": "Apartment Down Payment",
+      "targetAmount": 1500000,
+      "currentAmount": 225000,
+      "category": "Real Estate",
+      "description": "Saving towards a 20% down payment for a 2BHK apartment in Bangalore's Whitefield area.",
+      "icon": "home",
+      "color": "violet",
+      "eta": "2029-12-31",
+      "priority": "High"
+    }
+  ],
+  "categories": [
+    {
+      "name": "Food & Dining",
+      "percentage": 108,
+      "spent": 15170,
+      "budget": 14000,
+      "icon": "restaurant",
+      "color": "orange-400",
+      "kind": "spending"
+    },
+    {
+      "name": "Transport",
+      "percentage": 80,
+      "spent": 4380,
+      "budget": 5500,
+      "icon": "directions_car",
+      "color": "sky-400",
+      "kind": "spending"
+    },
+    {
+      "name": "Shopping",
+      "percentage": 110,
+      "spent": 11000,
+      "budget": 10000,
+      "icon": "shopping_bag",
+      "color": "violet-400",
+      "kind": "spending"
+    },
+    {
+      "name": "Entertainment",
+      "percentage": 74,
+      "spent": 3350,
+      "budget": 4500,
+      "icon": "movie",
+      "color": "pink-400",
+      "kind": "spending"
+    },
+    {
+      "name": "Health & Fitness",
+      "percentage": 47,
+      "spent": 1400,
+      "budget": 3000,
+      "icon": "health_and_safety",
+      "color": "emerald-400",
+      "kind": "spending"
+    },
+    {
+      "name": "Rent",
+      "percentage": 100,
+      "spent": 25000,
+      "budget": 25000,
+      "icon": "home",
+      "color": "red-400",
+      "kind": "recurring"
+    },
+    {
+      "name": "Internet",
+      "percentage": 100,
+      "spent": 1499,
+      "budget": 1500,
+      "icon": "wifi",
+      "color": "cyan-400",
+      "kind": "recurring"
+    },
+    {
+      "name": "Subscriptions",
+      "percentage": 0,
+      "spent": 0,
+      "budget": 900,
+      "icon": "subscriptions",
+      "color": "indigo-400",
+      "kind": "recurring"
+    },
+    {
+      "name": "Gym",
+      "percentage": 100,
+      "spent": 2000,
+      "budget": 2000,
+      "icon": "fitness_center",
+      "color": "lime-400",
+      "kind": "recurring"
+    },
+    {
+      "name": "Emergency Fund",
+      "percentage": 90,
+      "spent": 7222,
+      "budget": 8000,
+      "icon": "savings",
+      "color": "teal-400",
+      "kind": "savings"
+    },
+    {
+      "name": "Investments",
+      "percentage": 83,
+      "spent": 10000,
+      "budget": 12000,
+      "icon": "trending_up",
+      "color": "yellow-400",
+      "kind": "savings"
+    },
+    {
+      "name": "Pet",
+      "icon": "pets",
+      "color": "tertiary-container",
+      "budget": 10000,
+      "kind": "spending",
+      "spent": 100,
+      "percentage": 1
+    }
+  ],
+  "insights": [
+    {
+      "id": "i001",
+      "title": "Food spending is 8% over budget",
+      "description": "You've spent ₹15,170 against a ₹14,000 food budget. Swiggy alone has been ordered 7 times this month totalling ₹3,030. Reducing delivery orders to 3 times a week could bring you back on track by month end.",
+      "trend": "up",
+      "icon": "restaurant"
+    },
+    {
+      "id": "i002",
+      "title": "Shopping crossed budget by 10%",
+      "description": "₹11,000 spent against a ₹10,000 limit. Two Amazon orders on Apr 6 and Apr 10 account for ₹6,000 of that total. A 48-hour pause rule before online purchases would have saved you the overage this month.",
+      "trend": "up",
+      "icon": "shopping_bag"
+    },
+    {
+      "id": "i003",
+      "title": "Savings rate is healthy at 20.4%",
+      "description": "You're on track to save ₹20,433 this month — above the recommended 20% threshold. Your ₹10,000 Zerodha SIP and ₹5,000 FD top-up are both contributing. At this pace your Emergency Fund goal hits 50% by June.",
+      "trend": "neutral",
+      "icon": "savings"
+    },
+    {
+      "id": "i004",
+      "title": "Transport is well under control",
+      "description": "Only ₹4,380 of your ₹5,500 transport budget used with 10 days remaining. Uber accounts for 89% of your transport spend. Switching to the Metro for your regular commute could free up ₹600+ every month.",
+      "trend": "down",
+      "icon": "directions_car"
+    }
+  ]
+}
