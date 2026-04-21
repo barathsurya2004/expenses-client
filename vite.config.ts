@@ -226,15 +226,22 @@ const buildDashboardSummary = (db: FinanceDb) => {
 
 const buildInsightsPageData = (db: FinanceDb) => {
   const summary = buildDashboardSummary(db)
-  const transactions = summary.recentTransactions.flatMap(group => group.items)
-  const expenses = transactions.filter(transaction => transaction.type === 'expense')
-  const incomeItems = transactions.filter(transaction => transaction.type === 'income')
+  const sortedTransactions = [...db.transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const transactions = sortedTransactions
+
+  const today = new Date()
+  const currentMonthTransactions = transactions.filter((transaction) => {
+    const transactionDate = new Date(transaction.date)
+    return transactionDate.getFullYear() === today.getFullYear() && transactionDate.getMonth() === today.getMonth()
+  })
+
+  const expenses = currentMonthTransactions.filter(transaction => transaction.type === 'expense')
+  const incomeItems = currentMonthTransactions.filter(transaction => transaction.type === 'income')
 
   const totalExpenses = expenses.reduce((sum, transaction) => sum + transaction.amount, 0)
   const totalIncome = incomeItems.reduce((sum, transaction) => sum + transaction.amount, 0)
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0
 
-  const today = new Date()
   const dayOfMonth = today.getDate()
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
   const daysRemaining = daysInMonth - dayOfMonth
@@ -256,10 +263,14 @@ const buildInsightsPageData = (db: FinanceDb) => {
     return acc
   }, {} as Record<string, number>)
   const maxDaySpend = Math.max(...dayOrder.map(day => daySpend[day] ?? 0), 1)
-  const peakDay = dayOrder.reduce(
-    (peak, day) => (daySpend[day] ?? 0) > (daySpend[peak] ?? 0) ? day : peak,
-    dayOrder[0]
-  )
+  const hasDaySpend = dayOrder.some(day => (daySpend[day] ?? 0) > 0)
+  const currentWeekDay = today.toLocaleDateString('en-US', { weekday: 'short' })
+  const peakDay = hasDaySpend
+    ? dayOrder.reduce(
+      (peak, day) => (daySpend[day] ?? 0) > (daySpend[peak] ?? 0) ? day : peak,
+      dayOrder[0]
+    )
+    : (dayOrder.includes(currentWeekDay) ? currentWeekDay : dayOrder[0])
 
   const merchantFreq = expenses.reduce((acc, transaction) => {
     acc[transaction.merchant] = (acc[transaction.merchant] || 0) + 1
@@ -273,10 +284,33 @@ const buildInsightsPageData = (db: FinanceDb) => {
   const recurringPct = totalIncome > 0 ? Math.round((recurringTotal / totalIncome) * 100) : 0
   const discretionaryPct = Math.max(0, 100 - Math.round(savingsRate) - recurringPct)
 
-  const last6Months = Array.from({ length: 6 }, (_, index) => {
-    const date = new Date()
-    date.setMonth(date.getMonth() - (5 - index))
-    return date.toLocaleString('default', { month: 'short' })
+  const monthBuckets = Array.from({ length: 6 }, (_, index) => {
+    const date = new Date(today.getFullYear(), today.getMonth() - (5 - index), 1)
+    return date
+  })
+  const last6Months = monthBuckets.map(date => date.toLocaleString('default', { month: 'short' }))
+  const cashFlowSeries = monthBuckets.map(date => {
+    const monthIncomeAndExpense = db.transactions.reduce((acc, transaction) => {
+      const transactionDate = new Date(transaction.date)
+      const isSameMonth = transactionDate.getFullYear() === date.getFullYear() && transactionDate.getMonth() === date.getMonth()
+
+      if (!isSameMonth) {
+        return acc
+      }
+
+      if (transaction.type === 'income') {
+        acc.income += transaction.amount
+      } else {
+        acc.expense += transaction.amount
+      }
+
+      return acc
+    }, { income: 0, expense: 0 })
+
+    return {
+      month: date.toLocaleString('default', { month: 'short' }),
+      value: monthIncomeAndExpense.income - monthIncomeAndExpense.expense,
+    }
   })
 
   const savingsColor = savingsRate >= 20 ? '#4ade80' : savingsRate >= 5 ? '#facc15' : '#f87171'
@@ -342,7 +376,9 @@ const buildInsightsPageData = (db: FinanceDb) => {
       day,
       amount: daySpend[day] ?? 0,
       isPeak: day === peakDay,
-      heightPercent: Math.max(((daySpend[day] ?? 0) / maxDaySpend) * 100, 5),
+      heightPercent: (daySpend[day] ?? 0) <= 0
+        ? 0
+        : Math.max(((daySpend[day] ?? 0) / maxDaySpend) * 100, 8),
     })),
     peakDay,
     topMerchants: topMerchantsBase.map(([merchant, count], index) => ({
@@ -362,6 +398,7 @@ const buildInsightsPageData = (db: FinanceDb) => {
       discretionaryPct,
     },
     last6Months,
+    cashFlowSeries,
     savingsColorHex: savingsColor,
     healthBarColorHex: healthBarColor,
     categoryRows: db.categories.slice(0, 5).map(category => ({
@@ -600,6 +637,36 @@ const dbMiddleware = async (
       respondJson(res, 200, nextTransaction)
     } catch {
       respondJson(res, 500, { error: 'Failed to update transaction' })
+    }
+    return
+  }
+
+  if (pathname.startsWith('/api/transactions/') && req.method === 'DELETE') {
+    try {
+      const transactionId = pathname.replace('/api/transactions/', '')
+      const db = await readDb()
+      const index = db.transactions.findIndex(entry => entry.id === transactionId)
+
+      if (index === -1) {
+        respondJson(res, 404, { error: 'Transaction not found' })
+        return
+      }
+
+      const transactionToDelete = db.transactions[index]
+
+      if (transactionToDelete.type === 'expense') {
+        const category = db.categories.find(entry => entry.name === transactionToDelete.category)
+        if (category) {
+          category.spent = Math.max(category.spent - transactionToDelete.amount, 0)
+          category.percentage = category.budget > 0 ? Math.round((category.spent / category.budget) * 100) : 0
+        }
+      }
+
+      db.transactions.splice(index, 1)
+      await writeDb(db)
+      respondJson(res, 200, { success: true })
+    } catch {
+      respondJson(res, 500, { error: 'Failed to delete transaction' })
     }
     return
   }

@@ -109,6 +109,10 @@ export interface InsightsPageData {
     discretionaryPct: number;
   };
   last6Months: string[];
+  cashFlowSeries: Array<{
+    month: string;
+    value: number;
+  }>;
   savingsColorHex: string;
   healthBarColorHex: string;
   categoryRows: Array<{
@@ -230,6 +234,18 @@ export const apiService = {
     const nextTransaction = await response.json() as Transaction;
     emitFinanceDataUpdated();
     return nextTransaction;
+  },
+
+  deleteTransaction: async (id: string): Promise<void> => {
+    const response = await fetch(`/api/transactions/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete transaction');
+    }
+
+    emitFinanceDataUpdated();
   },
 
   addGoal: async (data: Omit<Goal, 'id'>): Promise<Goal> => {

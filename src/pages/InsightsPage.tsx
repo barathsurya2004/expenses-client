@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import gsap from 'gsap';
 import { TopAppBar } from '../components/ui/Common';
 import { InsightCard } from '../components/ui/Cards';
 import { apiService, FINANCE_DATA_UPDATED_EVENT } from '../services/apiService';
@@ -8,6 +9,10 @@ import { Animate } from '../components/ui/Animate';
 const InsightsPage: React.FC = () => {
     const [data, setData] = useState<InsightsPageData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [scrubIndex] = useState<number | null>(null);
+    const chartRef = useRef<HTMLDivElement>(null);
+    const crosshairRef = useRef<HTMLDivElement>(null);
+    const tooltipRef = useRef<HTMLDivElement>(null);
 
     const fetchData = useCallback(async () => {
         try {
@@ -32,6 +37,89 @@ const InsightsPage: React.FC = () => {
             window.removeEventListener(FINANCE_DATA_UPDATED_EVENT, handleDataUpdated);
         };
     }, [fetchData]);
+
+    const chartPoints = useMemo(() => {
+        if (!data || data.cashFlowSeries.length === 0) {
+            return [] as Array<{ x: number; y: number; value: number; month: string }>;
+        }
+
+        const values = data.cashFlowSeries.map(point => point.value);
+        const minValue = Math.min(...values);
+        const maxValue = Math.max(...values);
+        const hasRange = maxValue !== minValue;
+
+        return data.cashFlowSeries.map((point, index) => {
+            const x = data.cashFlowSeries.length > 1 ? (index / (data.cashFlowSeries.length - 1)) * 100 : 50;
+            const ratio = hasRange ? (point.value - minValue) / (maxValue - minValue) : 0.5;
+            const y = 42 - ratio * 34;
+
+            return {
+                x,
+                y,
+                value: point.value,
+                month: point.month,
+            };
+        });
+    }, [data]);
+
+    const linePath = useMemo(() => {
+        if (chartPoints.length === 0) {
+            return '';
+        }
+
+        return chartPoints
+            .map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x},${point.y}`)
+            .join(' ');
+    }, [chartPoints]);
+
+    const areaPath = useMemo(() => {
+        if (!linePath) {
+            return '';
+        }
+
+        return `${linePath} L100,50 L0,50 Z`;
+    }, [linePath]);
+
+    const activePointIndex = useMemo(() => {
+        if (chartPoints.length === 0) {
+            return 0;
+        }
+
+        if (scrubIndex === null) {
+            return chartPoints.length - 1;
+        }
+
+        return Math.min(Math.max(scrubIndex, 0), chartPoints.length - 1);
+    }, [chartPoints.length, scrubIndex]);
+
+    const activePoint = chartPoints[activePointIndex];
+    const hasDaySpend = data?.daySpend.some(day => day.amount > 0) ?? false;
+
+    useEffect(() => {
+        if (!chartRef.current || !crosshairRef.current || !tooltipRef.current || !activePoint) {
+            return;
+        }
+
+        const chartWidth = chartRef.current.clientWidth;
+        const pointX = (activePoint.x / 100) * chartWidth;
+        const opacity = scrubIndex === null ? 0 : 1;
+
+        gsap.to(crosshairRef.current, {
+            x: pointX,
+            opacity,
+            duration: 0.16,
+            ease: 'power2.out',
+            overwrite: true,
+        });
+
+        gsap.to(tooltipRef.current, {
+            x: pointX,
+            opacity,
+            duration: 0.2,
+            ease: 'power2.out',
+            overwrite: true,
+        });
+    }, [activePoint, scrubIndex]);
 
     if (loading || !data) {
         return (
@@ -149,42 +237,50 @@ const InsightsPage: React.FC = () => {
 
                 <section className="grid gap-5">
                     <Animate type="slideUp" delay={0.28}>
-                        <div className="bg-surface-container-low rounded-xl p-6 border border-outline-variant/15 space-y-5 h-full">
+                        <div className="bg-surface-container-low rounded-xl p-6 border border-outline-variant/15 space-y-5 h-full overflow-hidden">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-base font-bold tracking-tight text-on-surface">Spend by Day</h3>
                                     <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">
-                                        Peak: {data.peakDay}s
+                                        Peak: {hasDaySpend ? `${data.peakDay}s` : '—'}
                                     </p>
                                 </div>
                                 <span className="material-symbols-outlined text-on-surface-variant text-[18px]">calendar_today</span>
                             </div>
-                            <div className="flex items-end gap-2 h-28">
-                                {data.daySpend.map(day => (
-                                    <div key={day.day} className="flex-1 flex flex-col items-center gap-1.5">
-                                        <div
-                                            className="w-full rounded-t-md"
-                                            style={{
-                                                height: `${day.heightPercent}%`,
-                                                background: day.isPeak ? '#aac7ff' : '#2a2a2d',
-                                                minHeight: '5px',
-                                            }}
-                                        />
-                                        <span
-                                            className="text-[9px] font-black uppercase tracking-wide"
-                                            style={{ color: day.isPeak ? '#aac7ff' : undefined }}
-                                        >
-                                            {day.day.slice(0, 2)}
-                                        </span>
-                                    </div>
-                                ))}
+                            <div className="rounded-lg border border-outline-variant/10 bg-surface-container p-3 overflow-hidden">
+                                <div className="flex items-end gap-2 h-28 w-full overflow-hidden">
+                                    {data.daySpend.map(day => (
+                                        <div key={day.day} className="flex-1 min-w-0 flex flex-col items-center gap-1.5">
+                                            <div
+                                                className="w-full rounded-t-md"
+                                                style={{
+                                                    height: `${Math.min(Math.max(day.heightPercent, 0), 100)}%`,
+                                                    background: day.isPeak && day.amount > 0 ? '#aac7ff' : '#2a2a2d',
+                                                    minHeight: day.amount > 0 ? '5px' : '1px',
+                                                }}
+                                            />
+                                            <span
+                                                className="text-[9px] font-black uppercase tracking-wide"
+                                                style={{ color: day.isPeak && day.amount > 0 ? '#aac7ff' : undefined }}
+                                            >
+                                                {day.day.slice(0, 2)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                             <div className="bg-surface-container-highest rounded-lg px-4 py-3 space-y-0.5">
                                 <p className="text-[11px] text-on-surface-variant">
-                                    Highest spending on <span className="text-primary font-bold">{data.peakDay}s</span>
-                                    {data.daySpend.find(day => day.isPeak)?.amount
-                                        ? ` · ₹${Math.round(data.daySpend.find(day => day.isPeak)?.amount ?? 0).toLocaleString()} this month`
-                                        : ''}.
+                                    {hasDaySpend ? (
+                                        <>
+                                            Highest spending on <span className="text-primary font-bold">{data.peakDay}s</span>
+                                            {data.daySpend.find(day => day.isPeak)?.amount
+                                                ? ` · ₹${Math.round(data.daySpend.find(day => day.isPeak)?.amount ?? 0).toLocaleString()} this month`
+                                                : ''}.
+                                        </>
+                                    ) : (
+                                        <>No expense transactions recorded this month yet.</>
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -300,7 +396,7 @@ const InsightsPage: React.FC = () => {
                                     <span className="material-symbols-outlined text-on-surface-variant text-[16px]">more_horiz</span>
                                 </button>
                             </div>
-                            <div className="h-48 relative w-full flex items-end">
+                            <div ref={chartRef} className="h-48 relative w-full flex items-end">
                                 <div className="absolute inset-0 grid grid-cols-5 gap-4 opacity-10">
                                     {[1, 2, 3, 4, 5].map(i => <div key={i} className="border-l border-outline-variant h-full" />)}
                                 </div>
@@ -312,11 +408,24 @@ const InsightsPage: React.FC = () => {
                                                 <stop offset="100%" stopColor="#aac7ff" stopOpacity="0" />
                                             </linearGradient>
                                         </defs>
-                                        <path d="M0,40 C20,35 30,45 50,20 C70,-5 80,30 100,10 L100,50 L0,50 Z" fill="url(#chartGradient)" />
-                                        <path d="M0,40 C20,35 30,45 50,20 C70,-5 80,30 100,10" fill="none" stroke="#aac7ff" strokeLinecap="round" strokeWidth="0.8" />
-                                        <circle cx="100" cy="10" fill="#131316" r="1.5" stroke="#aac7ff" strokeWidth="0.8" />
+                                        {areaPath && <path d={areaPath} fill="url(#chartGradient)" />}
+                                        {linePath && <path d={linePath} fill="none" stroke="#aac7ff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" />}
+                                        {activePoint && (
+                                            <circle cx={activePoint.x} cy={activePoint.y} fill="#131316" r="1.7" stroke="#aac7ff" strokeWidth="0.8" />
+                                        )}
                                     </svg>
                                 </div>
+
+                                <div ref={crosshairRef} className="absolute top-0 bottom-0 left-0 w-px bg-primary/70 opacity-0 pointer-events-none z-10" />
+
+                                <div ref={tooltipRef} className="absolute top-2 left-0 opacity-0 pointer-events-none z-20">
+                                    <div className="-translate-x-1/2 rounded-lg bg-surface-container-highest/95 border border-outline-variant/30 px-3 py-2 shadow-lg backdrop-blur-sm">
+                                        <p className="text-[9px] uppercase tracking-widest font-black text-on-surface-variant">
+                                            {activePoint?.month ?? ''}
+                                        </p>
+                                    </div>
+                                </div>
+
                             </div>
                             <div className="flex justify-between text-[10px] text-on-surface-variant font-black tracking-widest uppercase px-1">
                                 {data.last6Months.map((month, index) => (

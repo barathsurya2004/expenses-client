@@ -1,33 +1,6 @@
 {
   "transactions": [
     {
-      "amount": 100,
-      "merchant": "asdf",
-      "category": "Pet",
-      "date": "2026-04-21",
-      "type": "expense",
-      "icon": "receipt_long",
-      "id": "92xcwhrp0"
-    },
-    {
-      "amount": 1000,
-      "merchant": "asdf",
-      "category": "Emergency Fund",
-      "date": "2026-04-21",
-      "type": "expense",
-      "icon": "savings",
-      "id": "5d9cj1bzy"
-    },
-    {
-      "amount": 1222,
-      "merchant": "sadfsadf",
-      "category": "Emergency Fund",
-      "date": "2026-04-21",
-      "type": "expense",
-      "icon": "savings",
-      "id": "h1fck8r7w"
-    },
-    {
       "id": "t001",
       "merchant": "Tech Corp Ltd",
       "category": "Salary",
@@ -217,15 +190,6 @@
       "icon": "local_cafe"
     },
     {
-      "id": "t022",
-      "merchant": "Zomato",
-      "category": "Food & Dining",
-      "amount": 880,
-      "date": "2026-04-16",
-      "type": "expense",
-      "icon": "delivery_dining"
-    },
-    {
       "id": "t023",
       "merchant": "Swiggy",
       "category": "Food & Dining",
@@ -233,42 +197,6 @@
       "date": "2026-04-17",
       "type": "expense",
       "icon": "delivery_dining"
-    },
-    {
-      "id": "t024",
-      "merchant": "BigBasket",
-      "category": "Food & Dining",
-      "amount": 2000,
-      "date": "2026-04-18",
-      "type": "expense",
-      "icon": "shopping_basket"
-    },
-    {
-      "id": "t025",
-      "merchant": "Barbeque Nation",
-      "category": "Food & Dining",
-      "amount": 1800,
-      "date": "2026-04-18",
-      "type": "expense",
-      "icon": "restaurant"
-    },
-    {
-      "id": "t026",
-      "merchant": "Swiggy",
-      "category": "Food & Dining",
-      "amount": 390,
-      "date": "2026-04-21",
-      "type": "expense",
-      "icon": "delivery_dining"
-    },
-    {
-      "id": "t027",
-      "merchant": "Chai Point",
-      "category": "Food & Dining",
-      "amount": 180,
-      "date": "2026-04-21",
-      "type": "expense",
-      "icon": "local_cafe"
     },
     {
       "id": "t028",
@@ -316,15 +244,6 @@
       "icon": "local_taxi"
     },
     {
-      "id": "t033",
-      "merchant": "Rapido",
-      "category": "Transport",
-      "amount": 150,
-      "date": "2026-04-15",
-      "type": "expense",
-      "icon": "electric_bike"
-    },
-    {
       "id": "t034",
       "merchant": "Uber",
       "category": "Transport",
@@ -332,15 +251,6 @@
       "date": "2026-04-17",
       "type": "expense",
       "icon": "local_taxi"
-    },
-    {
-      "id": "t035",
-      "merchant": "BMTC",
-      "category": "Transport",
-      "amount": 120,
-      "date": "2026-04-19",
-      "type": "expense",
-      "icon": "directions_bus"
     },
     {
       "id": "t036",
@@ -379,15 +289,6 @@
       "icon": "shopping_bag"
     },
     {
-      "id": "t040",
-      "merchant": "IKEA",
-      "category": "Shopping",
-      "amount": 1200,
-      "date": "2026-04-17",
-      "type": "expense",
-      "icon": "chair"
-    },
-    {
       "id": "t041",
       "merchant": "PVR Cinemas",
       "category": "Entertainment",
@@ -413,15 +314,6 @@
       "date": "2026-04-17",
       "type": "expense",
       "icon": "theater_comedy"
-    },
-    {
-      "id": "t044",
-      "merchant": "Steam",
-      "category": "Entertainment",
-      "amount": 350,
-      "date": "2026-04-19",
-      "type": "expense",
-      "icon": "sports_esports"
     },
     {
       "id": "t045",
@@ -498,8 +390,8 @@
   "categories": [
     {
       "name": "Food & Dining",
-      "percentage": 108,
-      "spent": 15170,
+      "percentage": 71,
+      "spent": 9920,
       "budget": 14000,
       "icon": "restaurant",
       "color": "orange-400",
@@ -507,8 +399,8 @@
     },
     {
       "name": "Transport",
-      "percentage": 80,
-      "spent": 4380,
+      "percentage": 75,
+      "spent": 4110,
       "budget": 5500,
       "icon": "directions_car",
       "color": "sky-400",
@@ -516,8 +408,8 @@
     },
     {
       "name": "Shopping",
-      "percentage": 110,
-      "spent": 11000,
+      "percentage": 98,
+      "spent": 9800,
       "budget": 10000,
       "icon": "shopping_bag",
       "color": "violet-400",
@@ -525,8 +417,8 @@
     },
     {
       "name": "Entertainment",
-      "percentage": 74,
-      "spent": 3350,
+      "percentage": 67,
+      "spent": 3000,
       "budget": 4500,
       "icon": "movie",
       "color": "pink-400",
@@ -579,8 +471,8 @@
     },
     {
       "name": "Emergency Fund",
-      "percentage": 90,
-      "spent": 7222,
+      "percentage": 63,
+      "spent": 5000,
       "budget": 8000,
       "icon": "savings",
       "color": "teal-400",
@@ -601,8 +493,8 @@
       "color": "tertiary-container",
       "budget": 10000,
       "kind": "spending",
-      "spent": 100,
-      "percentage": 1
+      "spent": 0,
+      "percentage": 0
     }
   ],
   "insights": [
