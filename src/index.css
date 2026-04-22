@@ -11,6 +11,16 @@
     min-height: 100vh;
     font-size: 14px;
   }
+
+  /* Demo extra styles */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #111009; }
+  ::-webkit-scrollbar-thumb { background: #302C28; border-radius: 2px; }
+  
+  input[type=number]::-webkit-inner-spin-button { opacity: 0.3; }
+  input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.5); }
+  
+  select option { background: #181614; color: #EAE4D8; }
 }
 
 @layer utilities {

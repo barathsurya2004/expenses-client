@@ -21,6 +21,12 @@ const formatDateLabel = (dateStr: string) => {
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long' });
 };
 
+const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-ledger-dim mb-1.5 ml-0.5 font-body">
+    {children}
+  </p>
+);
+
 const InputField: React.FC<{
   label: string;
   placeholder: string;
@@ -28,34 +34,108 @@ const InputField: React.FC<{
   icon?: string;
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}> = ({ label, placeholder, type = 'text', icon, value, onChange }) => (
-  <div className="space-y-1.5">
-    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">{label}</label>
-    <div className="relative group">
-      {icon && (
-        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ledger-muted group-focus-within:text-ledger-accent transition-colors text-[18px]">
-          {icon}
+  hint?: string;
+}> = ({ label, placeholder, type = 'text', icon, value, onChange, hint }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="flex flex-col">
+      <FieldLabel>{label}</FieldLabel>
+      <div className="relative group">
+        {icon && (
+          <span className={`material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[17px] pointer-events-none transition-colors duration-150 ${focused ? 'text-ledger-accent' : 'text-ledger-dim'}`}>
+            {icon}
+          </span>
+        )}
+        <input
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          className={`w-full bg-ledger-s2 border rounded-[12px] text-[13.5px] font-medium text-ledger-text outline-none transition-all duration-150 font-body ${icon ? 'pl-[42px]' : 'px-4'} pr-4 py-3 ${focused ? 'border-ledger-accent/50 shadow-[0_0_0_3px_rgba(196,144,61,0.05)]' : 'border-ledger-border'}`}
+        />
+      </div>
+      {hint && <p className="text-[10px] text-ledger-dim/60 mt-1.5 ml-0.5">{hint}</p>}
+    </div>
+  );
+};
+
+const SelectField: React.FC<{
+  label: string;
+  icon?: string;
+  value: string;
+  onChange: (v: string) => void;
+  children: React.ReactNode;
+}> = ({ label, icon, value, onChange, children }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="flex flex-col">
+      <FieldLabel>{label}</FieldLabel>
+      <div className="relative group">
+        {icon && (
+          <span className={`material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[17px] pointer-events-none z-10 transition-colors duration-150 ${focused ? 'text-ledger-accent' : 'text-ledger-dim'}`}>
+            {icon}
+          </span>
+        )}
+        <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-ledger-dim pointer-events-none">
+          expand_more
         </span>
-      )}
-      <input
-        type={type}
+        <select
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          className={`w-full appearance-none bg-ledger-s2 border rounded-[12px] text-[13.5px] font-medium text-ledger-text outline-none cursor-pointer transition-all duration-150 font-body ${icon ? 'pl-[42px]' : 'px-4'} pr-9 py-3 ${focused ? 'border-ledger-accent/50 shadow-[0_0_0_3px_rgba(196,144,61,0.05)]' : 'border-ledger-border'}`}
+        >
+          {children}
+        </select>
+      </div>
+    </div>
+  );
+};
+
+const TextareaField: React.FC<{
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  rows?: number;
+}> = ({ label, placeholder, value, onChange, rows = 3 }) => {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div className="flex flex-col">
+      <FieldLabel>{label}</FieldLabel>
+      <textarea
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full bg-ledger-s2 border border-ledger-border rounded-xl ${icon ? 'pl-11' : 'px-4'} pr-4 py-3.5 text-[14px] font-medium text-ledger-text placeholder:text-ledger-dim/50 focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm`}
+        rows={rows}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        className={`w-full bg-ledger-s2 border rounded-[12px] text-[13.5px] font-medium text-ledger-text outline-none transition-all duration-150 font-body px-4 py-3 resize-none ${focused ? 'border-ledger-accent/50 shadow-[0_0_0_3px_rgba(196,144,61,0.05)]' : 'border-ledger-border'}`}
       />
     </div>
-  </div>
-);
+  );
+};
 
 const PrimaryButton: React.FC<{ label: string; icon: string; onClick?: () => void; disabled?: boolean }> = ({ label, icon, onClick, disabled }) => (
   <button
     onClick={onClick}
     disabled={disabled}
-    className="w-full py-4 mt-4 rounded-xl bg-ledger-accent text-ledger-bg text-[12px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-ledger-accent/10 font-body"
+    className="group relative w-full py-3.5 mt-2 rounded-[12px] bg-ledger-accent text-ledger-bg text-[11.5px] font-bold uppercase tracking-[0.16em] flex items-center justify-center gap-2 overflow-hidden transition-all duration-150 hover:bg-[#D4A050] active:scale-[0.98] disabled:bg-ledger-faint disabled:text-ledger-dim disabled:cursor-not-allowed disabled:shadow-none shadow-[0_4px_16px_rgba(196,144,61,0.15)] font-body"
   >
     {label}
-    <span className="material-symbols-outlined text-[18px]">{icon}</span>
+    <span className="material-symbols-outlined text-[17px]">{icon}</span>
+  </button>
+);
+
+const GhostButton: React.FC<{ label: string; onClick?: () => void }> = ({ label, onClick }) => (
+  <button
+    onClick={onClick}
+    className="w-full py-3 rounded-[12px] bg-transparent border border-ledger-border text-ledger-muted text-[11.5px] font-semibold tracking-[0.08em] transition-all duration-150 hover:bg-ledger-s3 hover:text-ledger-text active:scale-[0.98] font-body"
+  >
+    {label}
   </button>
 );
 
@@ -78,24 +158,12 @@ const CategorySelect: React.FC<{
   }, [kind]);
 
   return (
-    <div className="space-y-1.5">
-      <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">{label}</label>
-      <div className="relative group">
-        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ledger-muted group-focus-within:text-ledger-accent transition-colors text-[18px]">
-          category
-        </span>
-        <select
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="w-full appearance-none bg-ledger-s2 border border-ledger-border rounded-xl pl-11 pr-4 py-3.5 text-[14px] font-medium text-ledger-text focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
-        >
-          <option value="" disabled className="bg-ledger-s1">Select Category</option>
-          {categories.map(cat => (
-            <option key={cat.name} value={cat.name} className="bg-ledger-s1">{cat.name}</option>
-          ))}
-        </select>
-      </div>
-    </div>
+    <SelectField label={label} icon="category" value={value} onChange={onChange}>
+      <option value="" disabled className="bg-[#181614]">Select category</option>
+      {categories.map(cat => (
+        <option key={cat.name} value={cat.name} className="bg-[#181614] text-ledger-text">{cat.name}</option>
+      ))}
+    </SelectField>
   );
 };
 
@@ -106,30 +174,29 @@ const iconOptions = [
   'sports_esports', 'local_cafe', 'fitness_center', 'flag'
 ] as const;
 
-const colorOptions = ['primary', 'secondary', 'tertiary', 'tertiary-container', 'error', 'blue-400', 'green-400'] as const;
-
-const colorDotClass: Record<typeof colorOptions[number], string> = {
-  'primary': 'bg-primary',
-  'secondary': 'bg-secondary',
-  'tertiary': 'bg-tertiary',
-  'tertiary-container': 'bg-tertiary-container',
-  'error': 'bg-error',
-  'blue-400': 'bg-blue-400',
-  'green-400': 'bg-green-400'
-};
+const COLORS = [
+  { key: 'primary', hex: '#C4903D' },
+  { key: 'secondary', hex: '#A87AC9' },
+  { key: 'tertiary', hex: '#4ABFAB' },
+  { key: 'tertiary-container', hex: '#5A9BE8' },
+  { key: 'error', hex: '#C46555' },
+  { key: 'blue-400', hex: '#60A5FA' },
+  { key: 'green-400', hex: '#4ADE80' },
+] as const;
 
 const IconPicker: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
-  <div className="space-y-2">
-    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Icon</label>
-    <div className="grid grid-cols-6 gap-2 rounded-xl border border-ledger-border bg-ledger-bg/40 p-2">
+  <div className="flex flex-col">
+    <FieldLabel>Icon</FieldLabel>
+    <div className="grid grid-cols-7 gap-1.5 rounded-[12px] border border-ledger-border bg-ledger-s1/60 p-2.5">
       {iconOptions.map(option => (
         <button
           key={option}
           type="button"
           onClick={() => onChange(option)}
-          className={`h-9 rounded-lg border transition-all flex items-center justify-center ${value === option ? 'border-ledger-accent bg-ledger-accent/10 text-ledger-accent' : 'border-white/5 bg-ledger-s2 text-ledger-muted hover:bg-ledger-s3'}`}
+          title={option}
+          className={`h-9 rounded-lg border transition-all duration-120 flex items-center justify-center ${value === option ? 'border-ledger-accent/60 bg-ledger-accent/10 text-ledger-accent' : 'border-transparent bg-ledger-s2 text-ledger-dim hover:text-ledger-muted'}`}
         >
-          <span className="material-symbols-outlined text-[18px]">{option}</span>
+          <span className="material-symbols-outlined text-[17px]">{option}</span>
         </button>
       ))}
     </div>
@@ -137,23 +204,54 @@ const IconPicker: React.FC<{ value: string; onChange: (v: string) => void }> = (
 );
 
 const ColorPicker: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
-  <div className="space-y-2">
-    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Color</label>
-    <div className="grid grid-cols-2 gap-2 rounded-xl border border-ledger-border bg-ledger-bg/40 p-2 sm:grid-cols-4">
-      {colorOptions.map(option => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onChange(option)}
-          className={`flex h-9 items-center gap-2 rounded-lg border px-2.5 text-[10px] font-bold uppercase tracking-wider transition-all ${value === option ? 'border-ledger-accent bg-ledger-accent/10 text-ledger-text' : 'border-white/5 bg-ledger-s2 text-ledger-muted hover:bg-ledger-s3'}`}
-        >
-          <span className={`h-2.5 w-2.5 rounded-full ${colorDotClass[option]}`} />
-          <span className="truncate">{option.split('-')[0]}</span>
-        </button>
-      ))}
+  <div className="flex flex-col">
+    <FieldLabel>Color</FieldLabel>
+    <div className="flex flex-wrap gap-2.5 rounded-[12px] border border-ledger-border bg-ledger-s1/60 p-3">
+      {COLORS.map(({ key, hex }) => {
+        const isSelected = value === key;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onChange(key)}
+            title={key}
+            className={`w-8 h-8 rounded-full transition-all duration-150 relative ${isSelected ? 'scale-115 opacity-100 ring-2 ring-white ring-offset-2 ring-offset-ledger-bg shadow-[0_0_0_3px_rgba(255,255,255,0.1)]' : 'opacity-65 scale-100'}`}
+            style={{ backgroundColor: hex }}
+          />
+        );
+      })}
     </div>
   </div>
 );
+
+const ErrorBanner: React.FC<{ message: string }> = ({ message }) => (
+  <div className="flex items-center gap-2.5 bg-ledger-expense/10 border border-ledger-expense/25 rounded-[12px] px-4 py-3 transition-all">
+    <span className="material-symbols-outlined text-[16px] text-ledger-expense">error_outline</span>
+    <p className="text-[12px] text-ledger-expense font-medium font-body">{message}</p>
+  </div>
+);
+
+const TypeBadge: React.FC<{ label: string; color?: string }> = ({ label, color = '#C4903D' }) => (
+  <div 
+    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-opacity-10 transition-all"
+    style={{ backgroundColor: `${color}14`, borderColor: `${color}30` }}
+  >
+    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
+    <span className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color }}>{label}</span>
+  </div>
+);
+
+const ProgressBar: React.FC<{ value: number; max: number; color?: string; h?: number }> = ({ value, max, color = '#C4903D', h = 4 }) => {
+  const pct = Math.min((value / max) * 100, 100);
+  return (
+    <div className="w-full rounded-full bg-ledger-faint overflow-hidden" style={{ height: h }}>
+      <div 
+        className="h-full rounded-full transition-all duration-700 ease-out" 
+        style={{ width: `${pct}%`, backgroundColor: color }} 
+      />
+    </div>
+  );
+};
 
 export const ExpenseModalContent: React.FC = () => {
   const { closeModal } = useModal();
@@ -175,8 +273,8 @@ export const ExpenseModalContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <InputField label="Amount" placeholder="₹0.00" type="number" icon="currency_rupee" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
+    <div className="flex flex-col gap-4">
+      <InputField label="Amount" placeholder="₹ 0.00" type="number" icon="currency_rupee" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
       <InputField label="Merchant" placeholder="Where did you spend?" icon="storefront" value={form.merchant} onChange={e => setForm({ ...form, merchant: e.target.value })} />
       <CategorySelect label="Category" value={form.category} onChange={v => setForm({ ...form, category: v })} kind="spending" />
       <InputField label="Date" placeholder="" type="date" icon="calendar_today" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
@@ -205,9 +303,9 @@ export const SavingsExpenseModalContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <InputField label="Amount" placeholder="₹0.00" type="number" icon="currency_rupee" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
-      <InputField label="Merchant" placeholder="Where did you spend?" icon="storefront" value={form.merchant} onChange={e => setForm({ ...form, merchant: e.target.value })} />
+    <div className="flex flex-col gap-4">
+      <InputField label="Amount" placeholder="₹ 0.00" type="number" icon="currency_rupee" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
+      <InputField label="Merchant" placeholder="Where did you put it?" icon="storefront" value={form.merchant} onChange={e => setForm({ ...form, merchant: e.target.value })} />
       <CategorySelect label="Savings Category" value={form.category} onChange={v => setForm({ ...form, category: v })} kind="savings" />
       <InputField label="Date" placeholder="" type="date" icon="calendar_today" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
       <PrimaryButton label={loading ? "Adding..." : "Add to Savings"} icon="savings" onClick={handleAdd} disabled={loading} />
@@ -235,8 +333,8 @@ export const IncomeModalContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <InputField label="Amount" placeholder="₹0.00" type="number" icon="payments" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
+    <div className="flex flex-col gap-4">
+      <InputField label="Amount" placeholder="₹ 0.00" type="number" icon="payments" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
       <InputField label="Source" placeholder="Salary, Freelance, etc." icon="source" value={form.source} onChange={e => setForm({ ...form, source: e.target.value })} />
       <InputField label="Date" placeholder="" type="date" icon="calendar_today" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
       <PrimaryButton label={loading ? "Adding..." : "Add Income"} icon="add_chart" onClick={handleAdd} disabled={loading} />
@@ -264,12 +362,34 @@ export const TransferModalContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <InputField label="Amount" placeholder="₹0.00" type="number" icon="swap_horiz" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
-      <div className="grid grid-cols-2 gap-3">
-        <InputField label="From" placeholder="Source" icon="account_balance_wallet" value={form.from} onChange={e => setForm({ ...form, from: e.target.value })} />
-        <InputField label="To" placeholder="Destination" icon="savings" value={form.to} onChange={e => setForm({ ...form, to: e.target.value })} />
+    <div className="flex flex-col gap-4">
+      <InputField label="Amount" placeholder="₹ 0.00" type="number" icon="swap_horiz" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
+      
+      <div className="flex flex-col">
+        <FieldLabel>Transfer Route</FieldLabel>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 relative">
+            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[16px] text-ledger-dim pointer-events-none">account_balance_wallet</span>
+            <input 
+              placeholder="From" 
+              value={form.from} 
+              onChange={e => setForm({ ...form, from: e.target.value })}
+              className="w-full bg-ledger-s2 border border-ledger-border rounded-[12px] pl-[42px] pr-3 py-3 text-[13.5px] font-medium text-ledger-text outline-none transition-all focus:border-ledger-accent/40 font-body"
+            />
+          </div>
+          <span className="material-symbols-outlined text-ledger-dim text-[18px] flex-shrink-0">arrow_forward</span>
+          <div className="flex-1 relative">
+            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[16px] text-ledger-dim pointer-events-none">savings</span>
+            <input 
+              placeholder="To" 
+              value={form.to} 
+              onChange={e => setForm({ ...form, to: e.target.value })}
+              className="w-full bg-ledger-s2 border border-ledger-border rounded-[12px] pl-[42px] pr-3 py-3 text-[13.5px] font-medium text-ledger-text outline-none transition-all focus:border-ledger-accent/40 font-body"
+            />
+          </div>
+        </div>
       </div>
+
       <InputField label="Note" placeholder="What's this for?" icon="notes" value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} />
       <PrimaryButton label={loading ? "Transferring..." : "Transfer Funds"} icon="sync_alt" onClick={handleTransfer} disabled={loading} />
     </div>
@@ -308,62 +428,36 @@ export const AddGoalModalContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <InputField label="Goal Name" placeholder="e.g. MacBook Pro M4" value={form.name} onChange={(e) => updateField('name', e.target.value)} icon="flag" />
-        </div>
-        
-        <InputField label="Target Amount" type="number" placeholder="₹0.00" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} icon="target" />
-        <InputField label="Starting Savings" type="number" placeholder="₹0.00" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} icon="account_balance_wallet" />
-        
-        <InputField label="Category" placeholder="Electronics, Travel..." value={form.category} onChange={(e) => updateField('category', e.target.value)} icon="category" />
-        
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Priority</label>
-          <div className="relative group">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ledger-muted group-focus-within:text-ledger-accent transition-colors text-[18px]">
-              priority_high
-            </span>
-            <select
-              value={form.priority}
-              onChange={(e) => updateField('priority', e.target.value as GoalFormData['priority'])}
-              className="w-full appearance-none bg-ledger-s2 border border-ledger-border rounded-xl pl-11 pr-4 py-3.5 text-[14px] font-medium text-ledger-text focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
-            >
-              <option value="High" className="bg-ledger-s1">High Priority</option>
-              <option value="Medium" className="bg-ledger-s1">Medium Priority</option>
-              <option value="Low" className="bg-ledger-s1">Low Priority</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="sm:col-span-2">
-          <InputField label="Image URL" placeholder="https://images.unsplash.com/..." value={form.image} onChange={(e) => updateField('image', e.target.value)} icon="image" />
-        </div>
-
-        <div className="sm:col-span-2 space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => updateField('description', e.target.value)}
-            rows={3}
-            placeholder="Why are you saving for this?"
-            className="w-full resize-none bg-ledger-s2 border border-ledger-border rounded-xl px-4 py-3.5 text-[14px] font-medium text-ledger-text placeholder:text-ledger-dim/50 focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
-          />
-        </div>
-
-        <div className="sm:col-span-2">
-          <IconPicker value={form.icon} onChange={(v) => updateField('icon', v)} />
-        </div>
-        
-        <div className="sm:col-span-2">
-          <ColorPicker value={form.color} onChange={(v) => updateField('color', v)} />
-        </div>
+    <div className="flex flex-col gap-4">
+      <InputField label="Goal Name" placeholder="e.g. MacBook Pro M4" value={form.name} onChange={(e) => updateField('name', e.target.value)} icon="flag" />
+      
+      <div className="grid grid-cols-2 gap-4">
+        <InputField label="Target Amount" type="number" placeholder="₹ 0.00" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} icon="target" />
+        <InputField label="Starting Savings" type="number" placeholder="₹ 0.00" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} icon="account_balance_wallet" />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <InputField label="Category" placeholder="Electronics..." value={form.category} onChange={(e) => updateField('category', e.target.value)} icon="category" />
+        <SelectField label="Priority" icon="priority_high" value={form.priority} onChange={v => updateField('priority', v as GoalFormData['priority'])}>
+          <option value="High" className="bg-[#181614]">High Priority</option>
+          <option value="Medium" className="bg-[#181614]">Medium Priority</option>
+          <option value="Low" className="bg-[#181614]">Low Priority</option>
+        </SelectField>
       </div>
 
-      <div className="pt-2">
-        <PrimaryButton label={loading ? "Creating..." : "Create New Goal"} icon="add_circle" onClick={handleAdd} disabled={loading} />
-      </div>
+      <InputField label="Image URL" placeholder="https://images.unsplash.com/..." value={form.image} onChange={(e) => updateField('image', e.target.value)} icon="image" />
+
+      <TextareaField 
+        label="Description" 
+        placeholder="Why are you saving for this?" 
+        value={form.description} 
+        onChange={(e) => updateField('description', e.target.value)} 
+      />
+
+      <IconPicker value={form.icon} onChange={(v) => updateField('icon', v)} />
+      <ColorPicker value={form.color} onChange={(v) => updateField('color', v)} />
+
+      <PrimaryButton label={loading ? "Creating..." : "Create New Goal"} icon="add_circle" onClick={handleAdd} disabled={loading} />
     </div>
   );
 };
@@ -506,73 +600,40 @@ export const EditGoalModalContent: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {error && (
-        <div className="bg-ledger-expense/10 border border-ledger-expense/20 rounded-xl p-4 text-[13px] text-ledger-expense font-medium flex items-center gap-3">
-          <span className="material-symbols-outlined text-[18px]">error</span>
-          {error}
-        </div>
-      )}
+    <div className="flex flex-col gap-4">
+      {error && <ErrorBanner message={error} />}
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div className="sm:col-span-2">
-          <InputField label="Goal Name" placeholder="e.g. MacBook Pro M4" value={form.name} onChange={(e) => updateField('name', e.target.value)} icon="flag" />
-        </div>
-        
-        <InputField label="Target Amount" type="number" placeholder="₹0.00" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} icon="target" />
-        <InputField label="Current Savings" type="number" placeholder="₹0.00" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} icon="account_balance_wallet" />
-        
-        <InputField label="Category" placeholder="Electronics, Travel..." value={form.category} onChange={(e) => updateField('category', e.target.value)} icon="category" />
-        
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Priority</label>
-          <div className="relative group">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ledger-muted group-focus-within:text-ledger-accent transition-colors text-[18px]">
-              priority_high
-            </span>
-            <select
-              value={form.priority}
-              onChange={(e) => updateField('priority', e.target.value as GoalFormData['priority'])}
-              className="w-full appearance-none bg-ledger-s2 border border-ledger-border rounded-xl pl-11 pr-4 py-3.5 text-[14px] font-medium text-ledger-text focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
-            >
-              <option value="High" className="bg-ledger-s1">High Priority</option>
-              <option value="Medium" className="bg-ledger-s1">Medium Priority</option>
-              <option value="Low" className="bg-ledger-s1">Low Priority</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="sm:col-span-2">
-          <InputField label="Image URL" placeholder="https://images.unsplash.com/..." value={form.image} onChange={(e) => updateField('image', e.target.value)} icon="image" />
-        </div>
-
-        <div className="sm:col-span-2">
-          <InputField label="ETA" placeholder="e.g. Dec 2026 or 6 months" value={form.eta} onChange={(e) => updateField('eta', e.target.value)} icon="schedule" />
-        </div>
-
-        <div className="sm:col-span-2 space-y-1.5">
-          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => updateField('description', e.target.value)}
-            rows={3}
-            placeholder="Why are you saving for this?"
-            className="w-full resize-none bg-ledger-s2 border border-ledger-border rounded-xl px-4 py-3.5 text-[14px] font-medium text-ledger-text placeholder:text-ledger-dim/50 focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
-          />
-        </div>
-
-        <div className="sm:col-span-2">
-          <IconPicker value={form.icon} onChange={(v) => updateField('icon', v)} />
-        </div>
-        
-        <div className="sm:col-span-2">
-          <ColorPicker value={form.color} onChange={(v) => updateField('color', v)} />
-        </div>
+      <InputField label="Goal Name" placeholder="e.g. MacBook Pro M4" value={form.name} onChange={(e) => updateField('name', e.target.value)} icon="flag" />
+      
+      <div className="grid grid-cols-2 gap-4">
+        <InputField label="Target Amount" type="number" placeholder="₹ 0.00" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} icon="target" />
+        <InputField label="Current Savings" type="number" placeholder="₹ 0.00" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} icon="account_balance_wallet" />
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4">
+        <InputField label="Category" placeholder="Electronics..." value={form.category} onChange={(e) => updateField('category', e.target.value)} icon="category" />
+        <SelectField label="Priority" icon="priority_high" value={form.priority} onChange={v => updateField('priority', v as GoalFormData['priority'])}>
+          <option value="High" className="bg-[#181614]">High Priority</option>
+          <option value="Medium" className="bg-[#181614]">Medium Priority</option>
+          <option value="Low" className="bg-[#181614]">Low Priority</option>
+        </SelectField>
       </div>
 
-      <div className="pt-2">
-        <PrimaryButton label={saving ? 'Saving Changes...' : 'Save Goal Changes'} icon="check_circle" onClick={handleSave} disabled={saving} />
-      </div>
+      <InputField label="Image URL" placeholder="https://images.unsplash.com/..." value={form.image} onChange={(e) => updateField('image', e.target.value)} icon="image" />
+
+      <InputField label="ETA" placeholder="e.g. Dec 2026 or 6 months" value={form.eta} onChange={(e) => updateField('eta', e.target.value)} icon="schedule" />
+
+      <TextareaField 
+        label="Description" 
+        placeholder="Why are you saving for this?" 
+        value={form.description} 
+        onChange={(e) => updateField('description', e.target.value)} 
+      />
+
+      <IconPicker value={form.icon} onChange={(v) => updateField('icon', v)} />
+      <ColorPicker value={form.color} onChange={(v) => updateField('color', v)} />
+
+      <PrimaryButton label={saving ? 'Saving Changes...' : 'Save Goal Changes'} icon="check_circle" onClick={handleSave} disabled={saving} />
     </div>
   );
 };
@@ -614,11 +675,14 @@ export const QuickAddGoalModalContent: React.FC = () => {
   }, [id]);
 
   const remaining = goal ? Math.max(goal.targetAmount - goal.currentAmount, 0) : 0;
-  const parsedAmount = Number(amount);
-  const clampedAmount = Number.isFinite(parsedAmount) ? Math.min(Math.max(parsedAmount, 0), remaining) : 0;
+  const parsedAmount = Number(amount) || 0;
+  const clampedAmount = Math.min(Math.max(parsedAmount, 0), remaining);
 
-  const setPresetAmount = (value: number) => {
-    setAmount(String(Math.round(value)));
+  const progress = goal ? (goal.currentAmount / goal.targetAmount) * 100 : 0;
+  const afterPct = goal ? Math.min(((goal.currentAmount + clampedAmount) / goal.targetAmount) * 100, 100) : 0;
+
+  const setPresetAmount = (fraction: number) => {
+    setAmount(String(Math.round(remaining * fraction)));
     setError(null);
   };
 
@@ -650,60 +714,77 @@ export const QuickAddGoalModalContent: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="py-6 text-center text-on-surface-variant">Loading goal details...</div>;
+    return <div className="py-6 text-center text-ledger-dim animate-pulse">Loading goal details...</div>;
   }
 
   if (!goal) {
-    return <p className="text-sm text-error">{error || 'Goal not found.'}</p>;
+    return <ErrorBanner message={error || 'Goal not found.'} />;
   }
 
   if (remaining === 0) {
-    return <p className="text-sm text-on-surface">{goal.name} is already fully funded.</p>;
+    return <div className="py-2"><ErrorBanner message={`${goal.name} is already fully funded.`} /></div>;
   }
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 space-y-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{goal.name}</p>
-        <div className="flex items-end justify-between">
+    <div className="flex flex-col gap-5">
+      {/* Summary card */}
+      <div className="bg-ledger-s2 border border-ledger-border rounded-[12px] p-4">
+        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-ledger-dim mb-2.5">{goal.name}</p>
+        <div className="flex justify-between items-end mb-3.5">
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-on-surface-variant">Remaining Amount</p>
-            <p className="text-xl font-black text-primary">₹{remaining.toLocaleString()}</p>
+            <p className="text-[10px] text-ledger-muted mb-1">Remaining</p>
+            <p className="font-mono text-[22px] font-medium text-ledger-accent leading-none">₹{remaining.toLocaleString()}</p>
           </div>
-          <p className="text-[11px] text-on-surface-variant">Saved: ₹{goal.currentAmount.toLocaleString()}</p>
+          <p className="text-[11px] text-ledger-muted">Saved: ₹{goal.currentAmount.toLocaleString()}</p>
         </div>
+        {/* Progress */}
+        <div className="h-[5px] rounded-full bg-ledger-faint overflow-hidden relative">
+          <div 
+            className="absolute inset-y-0 left-0 bg-ledger-accent/25 transition-all duration-500 ease-out" 
+            style={{ width: `${afterPct}%` }} 
+          />
+          <div 
+            className="absolute inset-y-0 left-0 bg-ledger-accent transition-all duration-300" 
+            style={{ width: `${progress}%` }} 
+          />
+        </div>
+        <p className="text-[10px] text-ledger-dim/60 text-right mt-1.5">{Math.round(afterPct)}% after this add</p>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Amount to Add</label>
-        <input
-          type="number"
-          min="1"
-          max={remaining}
-          value={amount}
-          onChange={(e) => {
-            setAmount(e.target.value);
-            setError(null);
-          }}
-          className="w-full bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all"
-        />
-        <p className="text-[10px] text-on-surface-variant ml-1">Maximum allowed: ₹{remaining.toLocaleString()}</p>
-      </div>
+      <InputField 
+        label="Amount to Add" 
+        placeholder="₹ 0.00" 
+        type="number" 
+        icon="add_circle" 
+        value={amount} 
+        onChange={e => { setAmount(e.target.value); setError(""); }}
+        hint={`Max: ₹${remaining.toLocaleString()}`} 
+      />
 
+      {/* Preset chips */}
       <div className="grid grid-cols-4 gap-2">
-        <button type="button" onClick={() => setPresetAmount(remaining * 0.25)} className="rounded-xl bg-surface-container-low px-2 py-2 text-[11px] font-bold text-on-surface hover:bg-surface-container-high transition-colors">25%</button>
-        <button type="button" onClick={() => setPresetAmount(remaining * 0.5)} className="rounded-xl bg-surface-container-low px-2 py-2 text-[11px] font-bold text-on-surface hover:bg-surface-container-high transition-colors">50%</button>
-        <button type="button" onClick={() => setPresetAmount(remaining * 0.75)} className="rounded-xl bg-surface-container-low px-2 py-2 text-[11px] font-bold text-on-surface hover:bg-surface-container-high transition-colors">75%</button>
-        <button type="button" onClick={() => setPresetAmount(remaining)} className="rounded-xl bg-primary/15 px-2 py-2 text-[11px] font-bold text-primary hover:bg-primary/20 transition-colors">All</button>
+        {[0.25, 0.5, 0.75, 1].map((frac, i) => {
+          const labels = ["25%", "50%", "75%", "All"];
+          return (
+            <button 
+              key={frac} 
+              type="button"
+              onClick={() => setPresetAmount(frac)} 
+              className={`py-2 rounded-[10px] border text-[11px] font-bold transition-all duration-150 ${frac === 1 ? 'border-ledger-accent/25 bg-ledger-accent/10 text-ledger-accent' : 'border-ledger-border bg-ledger-s2 text-ledger-muted hover:text-ledger-text'}`}
+            >
+              {labels[i]}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">After this add</span>
-        <span className="text-sm font-black text-on-surface">₹{Math.round(goal.currentAmount + clampedAmount).toLocaleString()}</span>
+      {/* New total */}
+      <div className="flex justify-between items-center bg-ledger-s2 border border-ledger-border rounded-[12px] px-4 py-3">
+        <span className="text-[11px] text-ledger-muted uppercase tracking-[0.06em]">New total</span>
+        <span className="font-mono text-[14px] font-medium text-ledger-text">₹{Math.round(goal.currentAmount + clampedAmount).toLocaleString()}</span>
       </div>
 
-      {error && <p className="text-sm text-error">{error}</p>}
-
+      {error && <ErrorBanner message={error} />}
       <PrimaryButton label={saving ? 'Adding...' : 'Add To Goal'} icon="add_circle" onClick={handleSubmit} disabled={saving} />
     </div>
   );
@@ -724,9 +805,9 @@ export const AdjustTargetModalContent: React.FC<{ initialAmount?: number }> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <InputField label="New Target Amount" placeholder={`Current: ₹${initialAmount?.toLocaleString()}`} type="number" icon="target" value={amount} onChange={e => setAmount(e.target.value)} />
-      <InputField label="Reason for adjustment" placeholder="Optional" icon="notes" />
+      <InputField label="Reason for adjustment" placeholder="Optional" icon="notes" value="" onChange={() => {}} />
       <PrimaryButton label={loading ? "Updating..." : "Update Target"} icon="check_circle" onClick={handleUpdate} disabled={loading} />
     </div>
   );
@@ -744,6 +825,8 @@ export const NewBudgetTypeModalContent: React.FC<{ kind: BudgetKind }> = ({ kind
   const [budget, setBudget] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const colorsByKind = { spending: '#C4903D', savings: '#6DAD85', recurring: '#C46555' };
+
   const handleCreate = async () => {
     if (!name || !budget) return;
     setSaving(true);
@@ -758,15 +841,12 @@ export const NewBudgetTypeModalContent: React.FC<{ kind: BudgetKind }> = ({ kind
   };
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-outline-variant/20 bg-surface-container-low p-3">
-        <p className="text-[9px] uppercase tracking-widest font-black text-on-surface-variant">Type Selected</p>
-        <p className="text-[13px] font-black text-primary mt-1">{labelByKind[kind]}</p>
-      </div>
+    <div className="flex flex-col gap-4">
+      <TypeBadge label={labelByKind[kind]} color={colorsByKind[kind]} />
       <InputField label="Name" placeholder="e.g. Dining, SIP, Rent" value={name} onChange={e => setName(e.target.value)} />
       <IconPicker value={icon} onChange={setIcon} />
       <ColorPicker value={color} onChange={setColor} />
-      <InputField label="Limit" placeholder="₹0" type="number" value={budget} onChange={e => setBudget(e.target.value)} />
+      <InputField label="Budget Limit" placeholder="₹ 0" type="number" icon="payments" value={budget} onChange={e => setBudget(e.target.value)} />
       <PrimaryButton label={saving ? "Creating..." : `Create ${labelByKind[kind]}`} icon="add_circle" onClick={handleCreate} disabled={saving} />
     </div>
   );
@@ -815,62 +895,35 @@ export const NewRecurringCostModalContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-outline-variant/20 bg-surface-container-low p-3">
-        <p className="text-[9px] uppercase tracking-widest font-black text-on-surface-variant">Type Selected</p>
-        <p className="text-[13px] font-black text-primary mt-1">Recurring bill</p>
-      </div>
+    <div className="flex flex-col gap-4">
+      <TypeBadge label="Recurring Bill" color="#C46555" />
 
       <InputField label="Name" placeholder="e.g. Rent, Internet, EMI" value={name} onChange={e => setName(e.target.value)} />
-      <InputField label="Amount" placeholder="₹0" type="number" icon="payments" value={amount} onChange={e => setAmount(e.target.value)} />
+      <InputField label="Amount" placeholder="₹ 0" type="number" icon="payments" value={amount} onChange={e => setAmount(e.target.value)} />
       <InputField label="Start Date" placeholder="" type="date" icon="calendar_today" value={startDate} onChange={e => setStartDate(e.target.value)} />
 
-      <div className="space-y-1.5">
-        <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">Repeat Interval</label>
-        <div className="relative group">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors text-[18px]">
-            autorenew
-          </span>
-          <select
-            value={interval}
-            onChange={e => setInterval(e.target.value as 'daily' | 'weekly' | 'monthly' | 'custom')}
-            className="w-full appearance-none bg-surface-container-low border border-outline-variant/15 rounded-xl pl-11 pr-4 py-3 text-[14px] font-medium text-on-surface focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/5 transition-all"
-          >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
-      </div>
+      <SelectField label="Repeat Interval" icon="autorenew" value={interval} onChange={v => setInterval(v as any)}>
+        <option value="daily" className="bg-[#181614]">Daily</option>
+        <option value="weekly" className="bg-[#181614]">Weekly</option>
+        <option value="monthly" className="bg-[#181614]">Monthly</option>
+        <option value="custom" className="bg-[#181614]">Custom</option>
+      </SelectField>
 
       {interval === 'custom' && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <InputField label="Every" placeholder="1" type="number" icon="pin" value={customValue} onChange={e => setCustomValue(e.target.value)} />
-          <div className="space-y-1.5">
-            <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">Unit</label>
-            <div className="relative group">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors text-[18px]">
-                schedule
-              </span>
-              <select
-                value={customUnit}
-                onChange={e => setCustomUnit(e.target.value as 'days' | 'weeks' | 'months')}
-                className="w-full appearance-none bg-surface-container-low border border-outline-variant/15 rounded-xl pl-11 pr-4 py-3 text-[14px] font-medium text-on-surface focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/5 transition-all"
-              >
-                <option value="days">Days</option>
-                <option value="weeks">Weeks</option>
-                <option value="months">Months</option>
-              </select>
-            </div>
-          </div>
+          <SelectField label="Unit" icon="schedule" value={customUnit} onChange={v => setCustomUnit(v as any)}>
+            <option value="days" className="bg-[#181614]">Days</option>
+            <option value="weeks" className="bg-[#181614]">Weeks</option>
+            <option value="months" className="bg-[#181614]">Months</option>
+          </SelectField>
         </div>
       )}
 
       <IconPicker value={icon} onChange={setIcon} />
       <ColorPicker value={color} onChange={setColor} />
 
-      {error && <p className="text-sm text-error">{error}</p>}
+      {error && <ErrorBanner message={error} />}
 
       <PrimaryButton label={saving ? 'Creating...' : 'Create Recurring Cost'} icon="autorenew" onClick={handleCreate} disabled={saving} />
     </div>
@@ -955,53 +1008,18 @@ export const EditTransactionModalContent: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="py-6 text-center text-on-surface-variant">Loading transaction details...</div>;
-  }
-
-  if (error && !form.merchant) {
-    return <p className="text-sm text-error">{error}</p>;
+    return <div className="py-6 text-center text-ledger-dim animate-pulse font-body">Loading transaction details...</div>;
   }
 
   return (
-    <div className="space-y-5">
-      {error && <p className="text-sm text-error">{error}</p>}
+    <div className="flex flex-col gap-4">
+      {error && <ErrorBanner message={error} />}
 
-      <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 space-y-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Transaction Type</p>
-        <p className="text-[13px] font-black text-primary mt-1 uppercase">{typeLabel}</p>
-      </div>
+      <TypeBadge label={typeLabel} color={typeLabel === 'income' ? '#6DAD85' : '#C46555'} />
 
-      <div className="space-y-1.5">
-        <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">Name</label>
-        <input
-          type="text"
-          value={form.merchant}
-          onChange={(e) => updateField('merchant', e.target.value)}
-          className="w-full bg-surface-container-low border border-outline-variant/15 rounded-xl px-4 py-3 text-[14px] font-medium text-on-surface focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/5 transition-all"
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">Amount</label>
-        <input
-          type="number"
-          min="0"
-          value={form.amount}
-          onChange={(e) => updateField('amount', e.target.value)}
-          className="w-full bg-surface-container-low border border-outline-variant/15 rounded-xl px-4 py-3 text-[14px] font-medium text-on-surface focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/5 transition-all"
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">Date</label>
-        <input
-          type="date"
-          value={form.date}
-          onChange={(e) => updateField('date', e.target.value)}
-          className="w-full bg-surface-container-low border border-outline-variant/15 rounded-xl px-4 py-3 text-[14px] font-medium text-on-surface focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/5 transition-all"
-        />
-        <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant ml-1">{formatDateLabel(form.date)}</p>
-      </div>
+      <InputField label="Name" placeholder="Merchant or source" icon="storefront" value={form.merchant} onChange={(e) => updateField('merchant', e.target.value)} />
+      <InputField label="Amount" placeholder="₹ 0.00" type="number" icon="currency_rupee" value={form.amount} onChange={(e) => updateField('amount', e.target.value)} />
+      <InputField label="Date" placeholder="" type="date" icon="calendar_today" value={form.date} onChange={(e) => updateField('date', e.target.value)} hint={formatDateLabel(form.date)} />
 
       <PrimaryButton label={saving ? 'Saving...' : 'Save Transaction'} icon="check_circle" onClick={handleSave} disabled={saving} />
     </div>
@@ -1056,63 +1074,59 @@ export const RecurringCostDetailModalContent: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="py-6 text-center text-on-surface-variant">Loading recurring cost details...</div>;
+    return <div className="py-6 text-center text-ledger-dim animate-pulse font-body">Loading recurring cost details...</div>;
   }
 
   if (!item) {
-    return <p className="text-sm text-error">{error || 'Recurring cost not found.'}</p>;
+    return <ErrorBanner message={error || 'Recurring cost not found.'} />;
   }
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4 space-y-3">
-        <div className="flex items-start justify-between gap-3">
+    <div className="flex flex-col gap-5">
+      {/* Header card */}
+      <div className="bg-ledger-s2 border border-ledger-border rounded-[12px] p-4">
+        <div className="flex justify-between items-start mb-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Recurring Cost</p>
-            <p className="text-lg font-black text-on-surface mt-1">{item.name}</p>
+            <p className="text-[9px] text-ledger-dim uppercase tracking-[0.16em] mb-1.5 ml-0.5">Recurring Cost</p>
+            <p className="text-[17px] font-bold text-ledger-text ml-0.5">{item.name}</p>
           </div>
-          <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full ${item.isPaid ? 'bg-green-500/15 text-green-400' : 'bg-error/15 text-error'}`}>
+          <span 
+            className={`text-[9px] font-bold uppercase tracking-[0.14em] px-2.5 py-1.5 rounded-full border bg-opacity-10 transition-all ${item.isPaid ? 'bg-ledger-income border-ledger-income/25 text-ledger-income' : 'bg-ledger-expense border-ledger-expense/25 text-ledger-expense'}`}
+          >
             {item.isPaid ? 'Paid' : 'Pending'}
           </span>
         </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-surface-container-highest p-3">
-            <p className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Amount</p>
-            <p className="text-base font-bold text-on-surface mt-1">₹{item.amount.toLocaleString()}</p>
+        
+        <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="bg-ledger-s1 rounded-[10px] p-3 border border-ledger-border/50">
+            <p className="text-[9px] text-ledger-dim uppercase tracking-[0.12em] mb-1.5">Amount</p>
+            <p className="text-[13.5px] font-semibold text-ledger-text font-mono">₹{item.amount.toLocaleString()}</p>
           </div>
-          <div className="rounded-xl bg-surface-container-highest p-3">
-            <p className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Next Pay Cycle</p>
-            <p className="text-base font-bold text-on-surface mt-1">{item.nextPayCycle}</p>
+          <div className="bg-ledger-s1 rounded-[10px] p-3 border border-ledger-border/50">
+            <p className="text-[9px] text-ledger-dim uppercase tracking-[0.12em] mb-1.5">Next Pay Cycle</p>
+            <p className="text-[13.5px] font-semibold text-ledger-text">{item.nextPayCycle}</p>
           </div>
         </div>
-
-        <div className="rounded-xl bg-surface-container-highest p-3">
-          <p className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Payment State</p>
-          <p className="text-sm font-semibold text-on-surface mt-1">
-            {item.isPaid
-              ? `Marked paid${item.paidOn ? ` on ${item.paidOn}` : ''}.`
-              : 'Not paid for current cycle.'}
+        
+        <div className="bg-ledger-s1 rounded-[10px] p-3 border border-ledger-border/50">
+          <p className="text-[9px] text-ledger-dim uppercase tracking-[0.12em] mb-1.5">Payment State</p>
+          <p className="text-[12.5px] text-ledger-muted leading-relaxed">
+            {item.isPaid ? `Marked paid on ${item.paidOn}.` : 'Not paid for current cycle.'}
           </p>
         </div>
       </div>
 
-      {error && <p className="text-sm text-error">{error}</p>}
+      {error && <ErrorBanner message={error} />}
 
-      <PrimaryButton
-        label={saving ? 'Updating...' : item.isPaid ? 'Mark As Not Paid' : 'Mark As Paid'}
-        icon={item.isPaid ? 'undo' : 'check_circle'}
-        onClick={handleTogglePaid}
-        disabled={saving}
-      />
-
-      <button
-        type="button"
-        onClick={closeModal}
-        className="w-full py-3 rounded-full bg-surface-container-low text-on-surface text-[12px] font-bold hover:bg-surface-container-high transition-colors"
-      >
-        Close
-      </button>
+      <div className="flex flex-col gap-3">
+        <PrimaryButton
+          label={saving ? 'Updating...' : item.isPaid ? 'Mark As Not Paid' : 'Mark As Paid'}
+          icon={item.isPaid ? 'undo' : 'check_circle'}
+          onClick={handleTogglePaid}
+          disabled={saving}
+        />
+        <GhostButton label="Close" onClick={closeModal} />
+      </div>
     </div>
   );
 };
