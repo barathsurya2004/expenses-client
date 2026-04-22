@@ -5,6 +5,18 @@ export default {
   theme: {
     extend: {
       "colors": {
+          "ledger-bg": "#0A0908",
+          "ledger-s1": "#111009",
+          "ledger-s2": "#181614",
+          "ledger-s3": "#201E1B",
+          "ledger-border": "#282420",
+          "ledger-faint": "#302C28",
+          "ledger-text": "#EAE4D8",
+          "ledger-muted": "#736D65",
+          "ledger-dim": "#4A4640",
+          "ledger-accent": "#C4903D",
+          "ledger-income": "#6DAD85",
+          "ledger-expense": "#C46555",
           "primary": "#aac7ff",
           "on-primary-container": "#002957",
           "on-secondary-container": "#98b6ee",
@@ -61,9 +73,10 @@ export default {
       },
       "spacing": {},
       "fontFamily": {
-          "headline": ["Inter"],
-          "body": ["Inter"],
-          "label": ["Inter"]
+          "headline": ["Playfair Display", "serif"],
+          "body": ["Jost", "sans-serif"],
+          "label": ["Jost", "sans-serif"],
+          "mono": ["DM Mono", "monospace"]
       }
     },
   },

@@ -35,18 +35,18 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
         { opacity: 1, duration: 0.3, ease: 'power2.out' }
       );
       tl.fromTo(panelRef.current, 
-        { y: 100, opacity: 0, scale: 0.95 }, 
-        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.7)' },
-        '-=0.2'
+        { y: 40, opacity: 0, scale: 0.98 }, 
+        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'power3.out' },
+        '-=0.15'
       );
     } else if (mounted) {
       const tl = gsap.timeline({
         onComplete: () => setMounted(false)
       });
       tl.to(panelRef.current, { 
-        y: 50, 
+        y: 20, 
         opacity: 0, 
-        scale: 0.95, 
+        scale: 0.98, 
         duration: 0.3, 
         ease: 'power2.in' 
       });
@@ -54,7 +54,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
         opacity: 0, 
         duration: 0.2, 
         ease: 'power2.in' 
-      }, '-=0.2');
+      }, '-=0.15');
     }
   }, { dependencies: [isOpen], scope: containerRef });
 
@@ -65,28 +65,28 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       {/* Backdrop */}
       <div 
         ref={backdropRef}
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-ledger-bg/80 backdrop-blur-md"
         onClick={onClose}
       />
       
       {/* Modal Panel */}
       <div 
         ref={panelRef}
-        className="relative w-full max-w-lg bg-surface-container-high rounded-t-[2rem] sm:rounded-2xl border border-outline-variant/20 shadow-2xl"
+        className="relative w-full max-w-lg bg-ledger-s1 rounded-t-3xl sm:rounded-2xl border border-ledger-border shadow-[0_32px_80px_-20px_rgba(0,0,0,0.8)]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/10">
-          <h2 className="text-lg font-bold text-on-surface">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-ledger-border">
+          <h2 className="text-base font-bold text-ledger-text uppercase tracking-widest">{title}</h2>
           <button 
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center hover:bg-surface-bright transition-colors active:scale-90"
+            className="w-8 h-8 rounded-lg bg-ledger-s2 border border-ledger-border flex items-center justify-center hover:bg-ledger-s3 transition-colors active:scale-90"
           >
-            <span className="material-symbols-outlined text-on-surface-variant text-[18px]">close</span>
+            <span className="material-symbols-outlined text-ledger-muted text-[18px]">close</span>
           </button>
         </div>
         
         {/* Content */}
-        <div className="px-6 py-6 overflow-y-auto max-h-[80vh]">
+        <div className="px-6 py-6 overflow-y-auto max-h-[80vh] scrollbar-thin scrollbar-thumb-ledger-faint scrollbar-track-transparent">
           {children}
         </div>
       </div>

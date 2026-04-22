@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TopAppBar } from '../components/ui/Common';
 import { GoalCard } from '../components/ui/Cards';
 import { apiService, FINANCE_DATA_UPDATED_EVENT } from '../services/apiService';
 import type { Goal } from '../types';
@@ -25,57 +24,55 @@ const WishlistPage: React.FC = () => {
   }, [fetchData]);
 
   useEffect(() => {
-    const handleDataUpdated = () => {
-      fetchData();
-    };
+    const handleDataUpdated = () => fetchData();
     window.addEventListener(FINANCE_DATA_UPDATED_EVENT, handleDataUpdated);
-    return () => {
-      window.removeEventListener(FINANCE_DATA_UPDATED_EVENT, handleDataUpdated);
-    };
+    return () => window.removeEventListener(FINANCE_DATA_UPDATED_EVENT, handleDataUpdated);
   }, [fetchData]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-ledger-bg">
+        <div className="w-10 h-10 border-2 border-ledger-accent/20 border-t-ledger-accent rounded-full animate-spin"></div>
       </div>
     );
   }
 
+  const totalSaved = goals.reduce((a, g) => a + g.currentAmount, 0);
+  const totalTarget = goals.reduce((a, g) => a + g.targetAmount, 0);
+
   return (
-    <div className="bg-surface text-on-surface pb-32 pt-20 min-h-screen">
-      <TopAppBar title="Vault" />
+    <div className="p-8 md:p-12 max-w-5xl mx-auto space-y-12 pb-24 md:pb-12">
+      <Animate type="fade">
+        <header>
+          <h1 className="font-headline text-4xl font-bold text-ledger-text tracking-tight">Goals</h1>
+          <div className="flex items-center gap-4 mt-2 font-body">
+            <div className="text-[13px] text-ledger-muted">{goals.length} active goals</div>
+            <div className="w-px h-3 bg-ledger-border" />
+            <div className="text-[13px] text-ledger-income">₹{totalSaved.toLocaleString()} saved of ₹{totalTarget.toLocaleString()}</div>
+          </div>
+        </header>
+      </Animate>
 
-      <main className="max-w-4xl mx-auto px-6 md:px-8 space-y-10">
-        <Animate type="fade" duration={0.8}>
-          <section className="mt-4 space-y-1.5">
-            <h2 className="text-2xl font-bold tracking-tight text-on-surface">Wishlist</h2>
-            <p className="text-on-surface-variant text-[13px] font-medium max-w-xl">Track progress towards your next acquisitions.</p>
-          </section>
-        </Animate>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-          {goals.map((goal, index) => (
-            <Animate key={goal.id} type="slideUp" delay={0.1 * (index + 1)}>
-              <GoalCard goal={goal} variant="grid" />
-            </Animate>
-          ))}
-
-          {/* Create New Card */}
-          <Animate type="slideUp" delay={0.1 * (goals.length + 1)}>
-            <article
-              onClick={() => openModal('goal')}
-              className="bg-surface-container-lowest rounded-xl border border-dashed border-outline-variant/30 flex flex-col items-center justify-center h-[380px] hover:bg-surface-container-low transition-colors cursor-pointer group"
-            >
-              <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
-                <span className="material-symbols-outlined text-2xl text-primary">add</span>
-              </div>
-              <h3 className="text-lg font-bold text-on-surface">New Goal</h3>
-              <p className="text-on-surface-variant text-[12px] mt-1 font-medium">What's next on your list?</p>
-            </article>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {goals.map((goal, index) => (
+          <Animate key={goal.id} type="slideUp" delay={0.1 * (index + 1)}>
+            <GoalCard goal={goal} variant="grid" />
           </Animate>
-        </div>
-      </main>
+        ))}
+
+        {/* Add Goal Placeholder */}
+        <Animate type="slideUp" delay={0.1 * (goals.length + 1)}>
+            <div
+                onClick={() => openModal('goal')}
+                className="bg-transparent border border-dashed border-ledger-faint rounded-2xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer min-h-[260px] hover:border-ledger-accent/40 transition-colors group"
+            >
+                <div className="w-12 h-12 rounded-xl border border-dashed border-ledger-faint flex items-center justify-center text-2xl text-ledger-dim group-hover:text-ledger-accent group-hover:border-ledger-accent/40 transition-all">
+                    <span className="material-symbols-outlined">add</span>
+                </div>
+                <div className="text-[13px] text-ledger-dim font-medium group-hover:text-ledger-accent transition-colors">Add new goal</div>
+            </div>
+        </Animate>
+      </div>
     </div>
   );
 };

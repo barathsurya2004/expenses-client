@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TopAppBar, ProgressBar } from '../components/ui/Common';
+import { ProgressBar } from '../components/ui/Common';
 import { BudgetCard, RecurringCostCard } from '../components/ui/Cards';
 import { apiService, FINANCE_DATA_UPDATED_EVENT } from '../services/apiService';
 import type { BudgetSummary } from '../services/apiService';
@@ -38,8 +38,8 @@ const BudgetPage: React.FC = () => {
 
     if (loading || !data) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+            <div className="min-h-screen flex items-center justify-center bg-ledger-bg">
+                <div className="w-10 h-10 border-2 border-ledger-accent/20 border-t-ledger-accent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -53,101 +53,90 @@ const BudgetPage: React.FC = () => {
         openModal('recurring-cost-detail');
     };
 
+    const SectionHeader = ({ title, accentColor, onAdd }: { title: string; accentColor: string; onAdd?: () => void }) => (
+        <div className="flex items-center justify-between mb-6 pb-3 border-b border-ledger-border">
+            <div className="flex items-center gap-3">
+                <div className="w-[3px] h-4 rounded-full" style={{ backgroundColor: accentColor }} />
+                <h2 className="text-[10px] text-ledger-muted uppercase tracking-[0.15em] font-bold">{title}</h2>
+            </div>
+            {onAdd && (
+                <button onClick={onAdd} className="w-6 h-6 rounded-md bg-ledger-s2 border border-ledger-border flex items-center justify-center text-ledger-muted hover:text-ledger-accent transition-colors">
+                    <span className="material-symbols-outlined text-[16px]">add</span>
+                </button>
+            )}
+        </div>
+    );
+
     return (
-        <div className="bg-background text-on-background min-h-screen pb-32 pt-20">
-            <TopAppBar title="Vault" />
+        <div className="p-8 md:p-12 max-w-4xl mx-auto space-y-12 pb-24 md:pb-12">
+            <Animate type="fade">
+                <header>
+                    <h1 className="font-headline text-4xl font-bold text-ledger-text tracking-tight">Budget</h1>
+                    <p className="text-[13px] text-ledger-muted mt-2 font-body">April 2026 · {data.spendingCategories.length + data.savingsCategories.length + data.recurringCards.length} categories tracked</p>
+                </header>
+            </Animate>
 
-            <main className="px-6 max-w-4xl mx-auto space-y-10">
-                <Animate type="fade" duration={0.8}>
-                    <section className="space-y-1.5">
-                        <h1 className="text-2xl font-bold tracking-tight text-on-surface">Budgets</h1>
-                        <p className="text-[13px] font-medium text-on-surface-variant">Track your monthly allocations and expenses.</p>
-                    </section>
-                </Animate>
+            {/* Overview card */}
+            <Animate type="slideUp" delay={0.2}>
+                <div className="bg-ledger-s2 border border-ledger-border rounded-2xl p-8 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-ledger-accent to-ledger-income via-transparent" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+                        <div>
+                            <p className="text-[10px] text-ledger-muted uppercase tracking-[0.12em] mb-2 font-bold">Total Spent</p>
+                            <p className="font-mono text-2xl font-medium text-ledger-text">₹{data.totalSpent.toLocaleString()}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-ledger-muted uppercase tracking-[0.12em] mb-2 font-bold">Total Budget</p>
+                            <p className="font-mono text-2xl font-medium text-ledger-muted">₹{data.totalBudget.toLocaleString()}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-ledger-muted uppercase tracking-[0.12em] mb-2 font-bold">Remaining</p>
+                            <p className={`font-mono text-2xl font-medium ${data.totalBudget - data.totalSpent < 0 ? 'text-ledger-expense' : 'text-ledger-income'}`}>₹{(data.totalBudget - data.totalSpent).toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <ProgressBar progress={data.totalProgress} color="bg-gradient-to-r from-ledger-income to-ledger-accent" height="h-1.5" />
+                    <p className="text-[11px] text-ledger-muted mt-3 font-medium">{Math.round(data.totalProgress)}% of total allocated budget consumed</p>
+                </div>
+            </Animate>
 
-                <Animate type="slideUp" delay={0.2}>
-                    <section>
-                        <div className="bg-surface-container-low rounded-xl p-6 sm:p-8 ghost-border relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-                            <div className="relative z-10">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Total Monthly Budget</p>
-                                <div className="flex items-end gap-3 mb-6">
-                                    <span className="text-3xl font-bold tracking-tighter">₹{data.totalSpent.toLocaleString()}</span>
-                                    <span className="text-[13px] font-medium text-on-surface-variant pb-1">/ ₹{data.totalBudget.toLocaleString()}</span>
-                                </div>
-                                <ProgressBar progress={data.totalProgress} color="bg-gradient-to-r from-primary to-primary-container" height="h-3" />
-                                <div className="flex justify-between mt-3 text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
-                                    <span>₹{(data.totalBudget - data.totalSpent).toLocaleString()} Remaining</span>
-                                    <span>{Math.round(data.totalProgress)}% Utilized</span>
-                                </div>
+            <Animate type="slideUp" delay={0.3}>
+                <section>
+                    <SectionHeader title="Discretionary Spending" accentColor="#C4903D" onAdd={() => openModal('new-spending-type')} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {data.spendingCategories.map(cat => (
+                            <div key={cat.name} onClick={handleCardClick} className="cursor-pointer">
+                                <BudgetCard category={cat} />
                             </div>
-                        </div>
-                    </section>
-                </Animate>
+                        ))}
+                    </div>
+                </section>
+            </Animate>
 
-                <Animate type="slideUp" delay={0.3}>
-                    <section className="space-y-4">
-                        <div className="flex items-center justify-between px-1">
-                            <h2 className="text-base font-bold text-on-surface">Spending</h2>
-                            <button
-                                onClick={() => openModal('new-spending-type')}
-                                className="w-7 h-7 rounded-full bg-white/5 backdrop-blur-sm ghost-border flex items-center justify-center hover:bg-white/10 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-on-surface-variant text-[16px]">add</span>
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {data.spendingCategories.map(cat => (
-                                <div key={cat.name} onClick={handleCardClick} className="cursor-pointer">
-                                    <BudgetCard category={cat} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                </Animate>
+            <Animate type="slideUp" delay={0.4}>
+                <section>
+                    <SectionHeader title="Fixed Recurring" accentColor="#C46555" onAdd={() => openModal('new-recurring-type')} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {data.recurringCards.map(item => (
+                            <div key={item.name} onClick={() => handleRecurringCardClick(item.name)} className="cursor-pointer">
+                                <RecurringCostCard item={item} />
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            </Animate>
 
-                <Animate type="slideUp" delay={0.4}>
-                    <section className="space-y-4">
-                        <div className="flex items-center justify-between px-1">
-                            <h2 className="text-base font-bold text-on-surface">Savings</h2>
-                            <button
-                                onClick={() => openModal('new-savings-type')}
-                                className="w-7 h-7 rounded-full bg-white/5 backdrop-blur-sm ghost-border flex items-center justify-center hover:bg-white/10 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-on-surface-variant text-[16px]">add</span>
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {data.savingsCategories.map(cat => (
-                                <div key={cat.name} onClick={handleCardClick} className="cursor-pointer">
-                                    <BudgetCard category={cat} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                </Animate>
-
-                <Animate type="slideUp" delay={0.5}>
-                    <section className="space-y-4">
-                        <div className="flex items-center justify-between px-1">
-                            <h2 className="text-base font-bold text-on-surface">Recurring</h2>
-                            <button
-                                onClick={() => openModal('new-recurring-type')}
-                                className="w-7 h-7 rounded-full bg-white/5 backdrop-blur-sm ghost-border flex items-center justify-center hover:bg-white/10 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-on-surface-variant text-[16px]">add</span>
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {data.recurringCards.map(item => (
-                                <div key={item.name} onClick={() => handleRecurringCardClick(item.name)} className="cursor-pointer">
-                                    <RecurringCostCard item={item} />
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                </Animate>
-            </main>
+            <Animate type="slideUp" delay={0.5}>
+                <section>
+                    <SectionHeader title="Savings & Investments" accentColor="#6DAD85" onAdd={() => openModal('new-savings-type')} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {data.savingsCategories.map(cat => (
+                            <div key={cat.name} onClick={handleCardClick} className="cursor-pointer">
+                                <BudgetCard category={cat} />
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            </Animate>
         </div>
     );
 };

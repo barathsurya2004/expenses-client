@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import MobileNavbar from './components/MobileNavbar'
+import { Sidebar } from './components/Sidebar'
 import BudgetPage from './pages/BudgetPage'
 import DashboardPage from './pages/DashboardPage'
 import InsightsPage from './pages/InsightsPage'
@@ -29,9 +30,11 @@ import {
 function App() {
   const location = useLocation();
   const { activeModal, closeModal } = useModal();
+  const scrollContainerRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    scrollContainerRef.current?.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   }, [location.pathname]);
 
   const renderModalContent = () => {
@@ -76,20 +79,26 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen pb-10 md:pb-28">
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/wishlist/:id" element={<WishlistItemPage />} />
-        <Route path="/budget" element={<BudgetPage />} />
-        <Route path="/insights" element={<InsightsPage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-      <MobileNavbar />
+    <div className="flex bg-ledger-bg min-h-screen text-ledger-text font-body">
+      <Sidebar />
+      <main ref={scrollContainerRef} className="flex-1 overflow-auto max-h-screen relative pb-24 md:pb-0">
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/wishlist/:id" element={<WishlistItemPage />} />
+          <Route path="/budget" element={<BudgetPage />} />
+          <Route path="/insights" element={<InsightsPage />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </main>
+
+      <div className="md:hidden">
+        <MobileNavbar />
+      </div>
 
       {/* Global Modal */}
       <Modal

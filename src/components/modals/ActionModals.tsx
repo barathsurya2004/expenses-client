@@ -30,10 +30,10 @@ const InputField: React.FC<{
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }> = ({ label, placeholder, type = 'text', icon, value, onChange }) => (
   <div className="space-y-1.5">
-    <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">{label}</label>
+    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">{label}</label>
     <div className="relative group">
       {icon && (
-        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors text-[18px]">
+        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ledger-muted group-focus-within:text-ledger-accent transition-colors text-[18px]">
           {icon}
         </span>
       )}
@@ -42,7 +42,7 @@ const InputField: React.FC<{
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className={`w-full bg-surface-container-low border border-outline-variant/15 rounded-xl ${icon ? 'pl-11' : 'px-4'} pr-4 py-3 text-[14px] font-medium text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/5 transition-all`}
+        className={`w-full bg-ledger-s2 border border-ledger-border rounded-xl ${icon ? 'pl-11' : 'px-4'} pr-4 py-3.5 text-[14px] font-medium text-ledger-text placeholder:text-ledger-dim/50 focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm`}
       />
     </div>
   </div>
@@ -52,7 +52,7 @@ const PrimaryButton: React.FC<{ label: string; icon: string; onClick?: () => voi
   <button
     onClick={onClick}
     disabled={disabled}
-    className="w-full py-3.5 mt-2 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary text-[13px] font-black uppercase tracking-wider shadow-lg shadow-primary/10 flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    className="w-full py-4 mt-4 rounded-xl bg-ledger-accent text-ledger-bg text-[12px] font-bold uppercase tracking-[0.15em] flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-ledger-accent/10 font-body"
   >
     {label}
     <span className="material-symbols-outlined text-[18px]">{icon}</span>
@@ -79,19 +79,19 @@ const CategorySelect: React.FC<{
 
   return (
     <div className="space-y-1.5">
-      <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">{label}</label>
+      <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">{label}</label>
       <div className="relative group">
-        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors text-[18px]">
+        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ledger-muted group-focus-within:text-ledger-accent transition-colors text-[18px]">
           category
         </span>
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full appearance-none bg-surface-container-low border border-outline-variant/15 rounded-xl pl-11 pr-4 py-3 text-[14px] font-medium text-on-surface focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/5 transition-all"
+          className="w-full appearance-none bg-ledger-s2 border border-ledger-border rounded-xl pl-11 pr-4 py-3.5 text-[14px] font-medium text-ledger-text focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
         >
-          <option value="" disabled>Select Category</option>
+          <option value="" disabled className="bg-ledger-s1">Select Category</option>
           {categories.map(cat => (
-            <option key={cat.name} value={cat.name}>{cat.name}</option>
+            <option key={cat.name} value={cat.name} className="bg-ledger-s1">{cat.name}</option>
           ))}
         </select>
       </div>
@@ -120,14 +120,14 @@ const colorDotClass: Record<typeof colorOptions[number], string> = {
 
 const IconPicker: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
   <div className="space-y-2">
-    <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">Icon</label>
-    <div className="grid grid-cols-6 gap-2 rounded-xl border border-outline-variant/15 bg-surface-container-low p-2">
+    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Icon</label>
+    <div className="grid grid-cols-6 gap-2 rounded-xl border border-ledger-border bg-ledger-bg/40 p-2">
       {iconOptions.map(option => (
         <button
           key={option}
           type="button"
           onClick={() => onChange(option)}
-          className={`h-9 rounded-lg border transition-colors flex items-center justify-center ${value === option ? 'border-primary bg-primary/15 text-primary' : 'border-outline-variant/15 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high'}`}
+          className={`h-9 rounded-lg border transition-all flex items-center justify-center ${value === option ? 'border-ledger-accent bg-ledger-accent/10 text-ledger-accent' : 'border-white/5 bg-ledger-s2 text-ledger-muted hover:bg-ledger-s3'}`}
         >
           <span className="material-symbols-outlined text-[18px]">{option}</span>
         </button>
@@ -138,14 +138,14 @@ const IconPicker: React.FC<{ value: string; onChange: (v: string) => void }> = (
 
 const ColorPicker: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
   <div className="space-y-2">
-    <label className="text-[9px] font-black uppercase tracking-[0.15em] text-on-surface-variant ml-1.5 opacity-70">Color</label>
-    <div className="grid grid-cols-2 gap-2 rounded-xl border border-outline-variant/15 bg-surface-container-low p-2 sm:grid-cols-4">
+    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Color</label>
+    <div className="grid grid-cols-2 gap-2 rounded-xl border border-ledger-border bg-ledger-bg/40 p-2 sm:grid-cols-4">
       {colorOptions.map(option => (
         <button
           key={option}
           type="button"
           onClick={() => onChange(option)}
-          className={`flex h-8 items-center gap-2 rounded-lg border px-2 text-[10px] font-bold uppercase transition-colors ${value === option ? 'border-primary bg-primary/15 text-on-surface' : 'border-outline-variant/15 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high'}`}
+          className={`flex h-9 items-center gap-2 rounded-lg border px-2.5 text-[10px] font-bold uppercase tracking-wider transition-all ${value === option ? 'border-ledger-accent bg-ledger-accent/10 text-ledger-text' : 'border-white/5 bg-ledger-s2 text-ledger-muted hover:bg-ledger-s3'}`}
         >
           <span className={`h-2.5 w-2.5 rounded-full ${colorDotClass[option]}`} />
           <span className="truncate">{option.split('-')[0]}</span>
@@ -279,29 +279,91 @@ export const TransferModalContent: React.FC = () => {
 export const AddGoalModalContent: React.FC = () => {
   const { closeModal } = useModal();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ name: '', target: '', desc: '' });
+  const [form, setForm] = useState<GoalFormData>(defaultGoalForm);
+
+  const updateField = (field: keyof GoalFormData, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleAdd = async () => {
-    if (!form.name || !form.target) return;
+    if (!form.name || !form.targetAmount) return;
     setLoading(true);
-    await apiService.addGoal({
-      name: form.name,
-      targetAmount: Number(form.target),
-      currentAmount: 0,
-      category: 'Savings',
-      description: form.desc,
-      icon: 'flag',
-      color: 'primary'
-    });
-    closeModal();
+    try {
+      await apiService.addGoal({
+        name: form.name.trim(),
+        targetAmount: Number(form.targetAmount),
+        currentAmount: Number(form.currentAmount) || 0,
+        category: form.category.trim() || 'Savings',
+        description: form.description.trim(),
+        image: form.image.trim() || undefined,
+        icon: form.icon || 'flag',
+        color: form.color || 'primary',
+        eta: form.eta.trim() || undefined,
+        priority: form.priority,
+      });
+      closeModal();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-4">
-      <InputField label="Goal Name" placeholder="Dream Car, New House..." icon="flag" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-      <InputField label="Target Amount" placeholder="₹0.00" type="number" icon="target" value={form.target} onChange={e => setForm({ ...form, target: e.target.value })} />
-      <InputField label="Description" placeholder="Why are you saving for this?" icon="description" value={form.desc} onChange={e => setForm({ ...form, desc: e.target.value })} />
-      <PrimaryButton label={loading ? "Creating..." : "Create Goal"} icon="add_circle" onClick={handleAdd} disabled={loading} />
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <InputField label="Goal Name" placeholder="e.g. MacBook Pro M4" value={form.name} onChange={(e) => updateField('name', e.target.value)} icon="flag" />
+        </div>
+        
+        <InputField label="Target Amount" type="number" placeholder="₹0.00" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} icon="target" />
+        <InputField label="Starting Savings" type="number" placeholder="₹0.00" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} icon="account_balance_wallet" />
+        
+        <InputField label="Category" placeholder="Electronics, Travel..." value={form.category} onChange={(e) => updateField('category', e.target.value)} icon="category" />
+        
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Priority</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ledger-muted group-focus-within:text-ledger-accent transition-colors text-[18px]">
+              priority_high
+            </span>
+            <select
+              value={form.priority}
+              onChange={(e) => updateField('priority', e.target.value as GoalFormData['priority'])}
+              className="w-full appearance-none bg-ledger-s2 border border-ledger-border rounded-xl pl-11 pr-4 py-3.5 text-[14px] font-medium text-ledger-text focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
+            >
+              <option value="High" className="bg-ledger-s1">High Priority</option>
+              <option value="Medium" className="bg-ledger-s1">Medium Priority</option>
+              <option value="Low" className="bg-ledger-s1">Low Priority</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="sm:col-span-2">
+          <InputField label="Image URL" placeholder="https://images.unsplash.com/..." value={form.image} onChange={(e) => updateField('image', e.target.value)} icon="image" />
+        </div>
+
+        <div className="sm:col-span-2 space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Description</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => updateField('description', e.target.value)}
+            rows={3}
+            placeholder="Why are you saving for this?"
+            className="w-full resize-none bg-ledger-s2 border border-ledger-border rounded-xl px-4 py-3.5 text-[14px] font-medium text-ledger-text placeholder:text-ledger-dim/50 focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <IconPicker value={form.icon} onChange={(v) => updateField('icon', v)} />
+        </div>
+        
+        <div className="sm:col-span-2">
+          <ColorPicker value={form.color} onChange={(v) => updateField('color', v)} />
+        </div>
+      </div>
+
+      <div className="pt-2">
+        <PrimaryButton label={loading ? "Creating..." : "Create New Goal"} icon="add_circle" onClick={handleAdd} disabled={loading} />
+      </div>
     </div>
   );
 };
@@ -436,63 +498,81 @@ export const EditGoalModalContent: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="py-6 text-center text-on-surface-variant">Loading goal details...</div>;
-  }
-
-  if (error && !form.name) {
-    return <p className="text-sm text-error">{error}</p>;
+    return (
+      <div className="py-12 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-ledger-accent/20 border-t-ledger-accent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-5">
-      {error && <p className="text-sm text-error">{error}</p>}
+    <div className="space-y-6">
+      {error && (
+        <div className="bg-ledger-expense/10 border border-ledger-expense/20 rounded-xl p-4 text-[13px] text-ledger-expense font-medium flex items-center gap-3">
+          <span className="material-symbols-outlined text-[18px]">error</span>
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-        <div className="space-y-2 sm:col-span-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Name</label>
-          <input type="text" value={form.name} onChange={(e) => updateField('name', e.target.value)} className="w-full bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all" />
+        <div className="sm:col-span-2">
+          <InputField label="Goal Name" placeholder="e.g. MacBook Pro M4" value={form.name} onChange={(e) => updateField('name', e.target.value)} icon="flag" />
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Target Amount</label>
-          <input type="number" min="0" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} className="w-full bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all" />
+        
+        <InputField label="Target Amount" type="number" placeholder="₹0.00" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} icon="target" />
+        <InputField label="Current Savings" type="number" placeholder="₹0.00" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} icon="account_balance_wallet" />
+        
+        <InputField label="Category" placeholder="Electronics, Travel..." value={form.category} onChange={(e) => updateField('category', e.target.value)} icon="category" />
+        
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Priority</label>
+          <div className="relative group">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-ledger-muted group-focus-within:text-ledger-accent transition-colors text-[18px]">
+              priority_high
+            </span>
+            <select
+              value={form.priority}
+              onChange={(e) => updateField('priority', e.target.value as GoalFormData['priority'])}
+              className="w-full appearance-none bg-ledger-s2 border border-ledger-border rounded-xl pl-11 pr-4 py-3.5 text-[14px] font-medium text-ledger-text focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
+            >
+              <option value="High" className="bg-ledger-s1">High Priority</option>
+              <option value="Medium" className="bg-ledger-s1">Medium Priority</option>
+              <option value="Low" className="bg-ledger-s1">Low Priority</option>
+            </select>
+          </div>
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Current Amount</label>
-          <input type="number" min="0" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} className="w-full bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all" />
+
+        <div className="sm:col-span-2">
+          <InputField label="Image URL" placeholder="https://images.unsplash.com/..." value={form.image} onChange={(e) => updateField('image', e.target.value)} icon="image" />
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Category</label>
-          <input type="text" value={form.category} onChange={(e) => updateField('category', e.target.value)} className="w-full bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all" />
+
+        <div className="sm:col-span-2">
+          <InputField label="ETA" placeholder="e.g. Dec 2026 or 6 months" value={form.eta} onChange={(e) => updateField('eta', e.target.value)} icon="schedule" />
         </div>
-        <div className="space-y-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Priority</label>
-          <select value={form.priority} onChange={(e) => updateField('priority', e.target.value as GoalFormData['priority'])} className="w-full bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all">
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
+
+        <div className="sm:col-span-2 space-y-1.5">
+          <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-ledger-dim ml-1 font-body">Description</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => updateField('description', e.target.value)}
+            rows={3}
+            placeholder="Why are you saving for this?"
+            className="w-full resize-none bg-ledger-s2 border border-ledger-border rounded-xl px-4 py-3.5 text-[14px] font-medium text-ledger-text placeholder:text-ledger-dim/50 focus:outline-none focus:border-ledger-accent/40 transition-all font-body shadow-sm"
+          />
         </div>
-        <div className="space-y-2 sm:col-span-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Image URL</label>
-          <input type="url" value={form.image} onChange={(e) => updateField('image', e.target.value)} placeholder="https://..." className="w-full bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all" />
+
+        <div className="sm:col-span-2">
+          <IconPicker value={form.icon} onChange={(v) => updateField('icon', v)} />
         </div>
-        <div className="space-y-2">
-          <IconPicker value={form.icon} onChange={(value) => updateField('icon', value)} />
-        </div>
-        <div className="space-y-2">
-          <ColorPicker value={form.color} onChange={(value) => updateField('color', value)} />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">ETA</label>
-          <input type="text" value={form.eta} onChange={(e) => updateField('eta', e.target.value)} placeholder="2 months" className="w-full bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all" />
-        </div>
-        <div className="space-y-2 sm:col-span-2">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Description</label>
-          <textarea value={form.description} onChange={(e) => updateField('description', e.target.value)} rows={4} className="w-full resize-y bg-surface-container-low border border-outline-variant/15 rounded-2xl px-4 py-3 text-on-surface focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all" />
+        
+        <div className="sm:col-span-2">
+          <ColorPicker value={form.color} onChange={(v) => updateField('color', v)} />
         </div>
       </div>
 
-      <PrimaryButton label={saving ? 'Saving...' : 'Save Goal Changes'} icon="check_circle" onClick={handleSave} disabled={saving} />
+      <div className="pt-2">
+        <PrimaryButton label={saving ? 'Saving Changes...' : 'Save Goal Changes'} icon="check_circle" onClick={handleSave} disabled={saving} />
+      </div>
     </div>
   );
 };

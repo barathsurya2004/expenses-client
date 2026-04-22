@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TopAppBar, ProgressBar } from '../components/ui/Common';
+import { ProgressBar } from '../components/ui/Common';
 import { GoalCard, TransactionItem } from '../components/ui/Cards';
 import { apiService, FINANCE_DATA_UPDATED_EVENT } from '../services/apiService';
 import type { DashboardSummary } from '../services/apiService';
 import { Animate } from '../components/ui/Animate';
-import { getBgClass } from '../utils/colors';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,134 +36,122 @@ const DashboardPage: React.FC = () => {
 
   if (loading || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-ledger-bg">
+        <div className="w-10 h-10 border-2 border-ledger-accent/20 border-t-ledger-accent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  return (
-    <div className="text-on-background font-body min-h-screen pb-32 pt-20 antialiased">
-      <TopAppBar title="Vault" />
+  const netBalance = data.totalIncome - data.totalExpense;
+  const savingsPct = ((netBalance / data.totalIncome) * 100).toFixed(1);
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Hero Section */}
-        <Animate type="fade" duration={0.8}>
-          <section className="bg-surface-container-low rounded-xl p-6 sm:p-10 relative overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)]">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
-              <div className="space-y-2">
-                <p className="font-label text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface-variant">Remaining Balance</p>
-                <h2 className="text-4xl sm:text-5xl font-bold tracking-tighter text-on-surface">₹{data.balance.toLocaleString()}</h2>
-                <p className="text-primary text-xs font-semibold flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                  +12% this month
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto">
-                <div className="bg-surface-container rounded-2xl p-4 md:w-44 border border-outline-variant/10 shadow-sm">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="material-symbols-outlined text-red-400 text-[14px]">arrow_upward</span>
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Spent</p>
-                  </div>
-                  <p className="text-xl font-bold text-red-400">₹{data.totalExpense.toLocaleString()}</p>
-                </div>
-                <div className="bg-surface-container rounded-2xl p-4 md:w-44 border border-outline-variant/10 shadow-sm">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="material-symbols-outlined text-green-400 text-[14px]">arrow_downward</span>
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Total Income</p>
-                  </div>
-                  <p className="text-xl font-bold text-green-400">₹{data.totalIncome.toLocaleString()}</p>
-                </div>
-              </div>
+  return (
+    <div className="p-8 md:p-12 max-w-5xl mx-auto space-y-12 pb-24 md:pb-12">
+      {/* Header */}
+      <Animate type="fade">
+        <div>
+          <div className="text-[11px] text-ledger-muted uppercase tracking-[0.15em] mb-4 font-body font-bold">Good morning · April 2026</div>
+          <div className="font-headline text-5xl md:text-7xl font-bold text-ledger-text tracking-tighter leading-[0.9]">
+            ₹{netBalance.toLocaleString()}
+          </div>
+          <div className="flex items-center gap-4 mt-4 font-body">
+            <div className="text-[13px] text-ledger-muted">Net balance this month</div>
+            <div className="w-px h-3 bg-ledger-border" />
+            <div className="text-[13px] text-ledger-income font-medium">↑ {savingsPct}% savings rate</div>
+          </div>
+        </div>
+      </Animate>
+
+      {/* Income / Expense cards */}
+      <Animate type="slideUp" delay={0.2}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-ledger-s2 border border-ledger-border rounded-2xl p-6 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-ledger-income/40 to-transparent" />
+            <div className="text-[10px] text-ledger-muted uppercase tracking-[0.12em] mb-3 font-bold">Total Income</div>
+            <div className="font-mono text-3xl font-medium text-ledger-income tracking-tight">₹{data.totalIncome.toLocaleString()}</div>
+            <div className="text-[11px] text-ledger-dim mt-2 font-medium">{data.recentTransactions.filter(g => g.label === 'Income').length || 2} sources logged</div>
+          </div>
+          <div className="bg-ledger-s2 border border-ledger-border rounded-2xl p-6 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-ledger-expense/40 to-transparent" />
+            <div className="text-[10px] text-ledger-muted uppercase tracking-[0.12em] mb-3 font-bold">Total Expenses</div>
+            <div className="font-mono text-3xl font-medium text-ledger-expense tracking-tight">₹{data.totalExpense.toLocaleString()}</div>
+            <div className="text-[11px] text-ledger-dim mt-2 font-medium">{data.recentTransactions.reduce((acc, g) => acc + g.items.length, 0)} transactions</div>
+          </div>
+        </div>
+      </Animate>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Recent Activity */}
+        <Animate type="slideUp" delay={0.3} className="lg:col-span-7">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div className="text-[10px] text-ledger-muted uppercase tracking-[0.15em] font-bold">Recent Activity</div>
+              <button onClick={() => navigate('/transactions')} className="text-[12px] text-ledger-accent hover:underline font-body font-medium">All transactions →</button>
             </div>
-          </section>
+            <div className="divide-y divide-ledger-border">
+              {data.recentTransactions.slice(0, 1).map(group => (
+                <div key={group.date} className="space-y-1">
+                   {group.items.slice(0, 7).map(t => (
+                     <TransactionItem key={t.id} transaction={t} />
+                   ))}
+                </div>
+              ))}
+            </div>
+          </div>
         </Animate>
 
-
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Animate type="slideUp" delay={0.3} className="lg:col-span-2">
-            <div className="space-y-6">
-              <section>
-                <h3 className="text-lg font-headline font-bold mb-4 text-on-surface px-1">Financial Goals</h3>
-                <div className="flex gap-4 overflow-x-auto pb-4 snap-x hide-scrollbar">
-                  {data.goals.map(goal => (
-                    <GoalCard key={goal.id} goal={goal} variant="carousel" />
-                  ))}
-                </div>
-              </section>
-            </div>
-          </Animate>
-
-          <Animate type="slideUp" delay={0.4}>
-            <div className="space-y-6">
-
-              <section className="bg-surface-container-low rounded-xl p-6 border border-outline-variant/15">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-base font-headline font-bold text-on-surface">Recent Transactions</h3>
-                  <button
-                    onClick={() => navigate('/transactions')}
-                    className="text-primary text-[11px] font-bold uppercase tracking-wider hover:opacity-80"
-                  >
-                    View All
-                  </button>
-                </div>
-                <div className="space-y-6">
-                  {data.recentTransactions.map((group) => (
-                    <div key={group.date} className="space-y-3">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/50 ml-1">
-                        {group.label}
-                      </p>
-                      <div className="space-y-4">
-                        {group.items.map(transaction => (
-                          <TransactionItem key={transaction.id} transaction={transaction} />
-                        ))}
-                      </div>
+        {/* Breakdown + Insights */}
+        <Animate type="slideUp" delay={0.4} className="lg:col-span-5 space-y-10">
+          {/* Spending Breakdown */}
+          <section>
+            <div className="text-[10px] text-ledger-muted uppercase tracking-[0.15em] font-bold mb-6">Spending Breakdown</div>
+            <div className="space-y-5">
+              {data.categories.slice(0, 5).map(cat => (
+                <div key={cat.name}>
+                  <div className="flex justify-between items-baseline mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                      <span className="text-[13px] text-ledger-text font-medium">{cat.name}</span>
                     </div>
-                  ))}
-                </div>
-              </section>
-              {data.insights.length > 0 && (
-                <section className="bg-gradient-to-br from-surface-container-high to-surface-container rounded-xl p-6 border border-outline-variant/15 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] relative overflow-hidden">
-                  <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 blur-3xl rounded-full pointer-events-none"></div>
-                  <div className="relative z-10">
-                    <div className="bg-primary/20 w-8 h-8 rounded-full flex items-center justify-center mb-3">
-                      <span className="material-symbols-outlined text-primary text-[18px]">lightbulb</span>
-                    </div>
-                    <h3 className="text-base font-headline font-bold mb-1.5 text-on-surface">{data.insights[0].title}</h3>
-                    <p className="text-[12px] leading-relaxed text-on-surface-variant mb-5">{data.insights[0].description}</p>
-                    <button
-                      onClick={() => navigate('/budget')}
-                      className="w-full bg-surface-container-highest hover:bg-surface-bright text-primary font-bold py-2.5 rounded-full transition-colors text-[11px] uppercase tracking-wider"
-                    >
-                      Review Budget
-                    </button>
+                    <span className="font-mono text-[11px] text-ledger-muted">
+                      ₹{cat.spent.toLocaleString()} <span className="text-ledger-dim">/ ₹{cat.budget.toLocaleString()}</span>
+                    </span>
                   </div>
-                </section>
-              )}
-
-              <section className="bg-surface-container-low rounded-xl p-6 border border-outline-variant/15">
-                <h3 className="text-base font-headline font-bold mb-5 text-on-surface">Spending by Category</h3>
-                <div className="space-y-4">
-                  {data.categories.slice(0, 3).map(category => (
-                    <div key={category.name}>
-                      <div className="flex justify-between text-[12px] mb-1.5 font-medium">
-                        <span className="text-on-surface-variant flex items-center gap-2">
-                          <span className="material-symbols-outlined text-[16px]">{category.icon}</span> {category.name}
-                        </span>
-                        <span className="text-on-surface">{category.percentage}%</span>
-                      </div>
-                      <ProgressBar progress={category.percentage} color={getBgClass(category.color)} height="h-1" />
-                    </div>
-                  ))}
+                  <ProgressBar progress={cat.percentage} color={cat.color} height="h-[2px]" />
+                  <div className="text-[10px] text-ledger-dim mt-1.5 text-right font-medium">{Math.round(cat.percentage)}% utilised</div>
                 </div>
-              </section>
+              ))}
             </div>
-          </Animate>
-        </div>
-      </main>
+          </section>
+
+          {/* Insight Callout */}
+          {data.insights.length > 0 && (
+            <div className="bg-ledger-s2 border border-ledger-border border-l-[3px] border-l-ledger-accent rounded-xl p-6 shadow-xl">
+              <div className="text-[10px] text-ledger-accent uppercase tracking-[0.12em] mb-2 font-bold">💡 Insight</div>
+              <div className="text-[14px] font-bold text-ledger-text leading-tight mb-2">{data.insights[0].title}</div>
+              <div className="text-[12.5px] text-ledger-muted leading-relaxed font-body">
+                {data.insights[0].description}
+              </div>
+            </div>
+          )}
+        </Animate>
+      </div>
+
+      {/* Goals Carousel */}
+      <Animate type="slideUp" delay={0.5}>
+        <section>
+            <div className="flex justify-between items-center mb-6">
+                <div className="text-[10px] text-ledger-muted uppercase tracking-[0.15em] font-bold">Financial Goals</div>
+                <button onClick={() => navigate('/wishlist')} className="text-[12px] text-ledger-accent hover:underline font-body font-medium">View all goals</button>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-4 snap-x no-scrollbar">
+                {data.goals.map(goal => (
+                    <GoalCard key={goal.id} goal={goal} variant="carousel" />
+                ))}
+            </div>
+        </section>
+      </Animate>
     </div>
   );
 };
