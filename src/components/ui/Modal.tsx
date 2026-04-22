@@ -10,17 +10,15 @@ interface ModalProps {
 }
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
-  const [mounted, setMounted] = useState(isOpen);
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  if (isOpen && !mounted) {
-    setMounted(true);
-  }
-
+  // Sync mounted state with isOpen
   useEffect(() => {
     if (isOpen) {
+      setMounted(true);
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -28,35 +26,37 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
   }, [isOpen]);
 
   useGSAP(() => {
-    if (isOpen) {
-      const tl = gsap.timeline();
+    if (isOpen && mounted) {
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out', duration: 0.5 } });
+      
       tl.fromTo(backdropRef.current, 
         { opacity: 0 }, 
-        { opacity: 1, duration: 0.3, ease: 'power2.out' }
+        { opacity: 1, duration: 0.4 }
       );
+      
       tl.fromTo(panelRef.current, 
-        { y: 40, opacity: 0, scale: 0.98 }, 
-        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'power3.out' },
-        '-=0.15'
+        { y: 30, opacity: 0, scale: 0.97 }, 
+        { y: 0, opacity: 1, scale: 1, duration: 0.5, clearProps: 'transform' },
+        '-=0.3'
       );
-    } else if (mounted) {
+    } else if (!isOpen && mounted) {
       const tl = gsap.timeline({
+        defaults: { ease: 'power2.inOut', duration: 0.3 },
         onComplete: () => setMounted(false)
       });
+
       tl.to(panelRef.current, { 
         y: 20, 
         opacity: 0, 
-        scale: 0.98, 
-        duration: 0.3, 
-        ease: 'power2.in' 
+        scale: 0.98,
       });
+
       tl.to(backdropRef.current, { 
         opacity: 0, 
-        duration: 0.2, 
-        ease: 'power2.in' 
-      }, '-=0.15');
+        duration: 0.2 
+      }, '-=0.1');
     }
-  }, { dependencies: [isOpen], scope: containerRef });
+  }, { dependencies: [isOpen, mounted], scope: containerRef });
 
   if (!mounted) return null;
 
@@ -72,14 +72,14 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       {/* Modal Panel */}
       <div 
         ref={panelRef}
-        className="relative w-full max-w-lg bg-ledger-s1 rounded-t-3xl sm:rounded-2xl border border-ledger-border shadow-[0_32px_80px_-20px_rgba(0,0,0,0.8)]"
+        className="relative w-full max-w-lg bg-ledger-s1 rounded-t-3xl sm:rounded-2xl border border-white/10 shadow-[0_32px_80px_-20px_rgba(0,0,0,0.8)] will-change-transform"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-ledger-border">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
           <h2 className="text-base font-bold text-ledger-text uppercase tracking-widest">{title}</h2>
           <button 
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-ledger-s2 border border-ledger-border flex items-center justify-center hover:bg-ledger-s3 transition-colors active:scale-90"
+            className="w-8 h-8 rounded-lg bg-ledger-s2 border border-white/10 flex items-center justify-center hover:bg-ledger-s3 transition-colors active:scale-90"
           >
             <span className="material-symbols-outlined text-ledger-muted text-[18px]">close</span>
           </button>
