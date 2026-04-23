@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMatch } from 'react-router-dom';
 import { apiService } from '../../services/apiService';
-import type { CategorySpending, Goal } from '../../types';
+import type { CategorySpending, Goal, Transaction } from '../../types';
 import { useModal } from '../../hooks/useModal';
 import type { RecurringCostSummary } from '../../services/apiService';
 
@@ -148,13 +148,34 @@ const CategorySelect: React.FC<{
   const [categories, setCategories] = useState<CategorySpending[]>([]);
 
   useEffect(() => {
-    apiService.getCategories().then(data => {
-      if (kind) {
-        setCategories(data.filter(c => c.kind === kind));
+    const fetchCats = async () => {
+      let data: CategorySpending[] = [];
+      if (kind === 'spending') {
+        data = await apiService.getSpendingCategories();
+      } else if (kind === 'savings') {
+        data = await apiService.getSavingsCategories();
+      } else if (kind === 'recurring') {
+        const recurring = await apiService.getRecurringCosts();
+        // Map RecurringCostSummary to CategorySpending if needed, or just use names
+        data = recurring.map(r => ({
+          name: r.name,
+          icon: r.icon,
+          color: r.color || 'primary',
+          budget: r.amount,
+          spent: r.isPaid ? r.amount : 0,
+          percentage: r.isPaid ? 100 : 0,
+          kind: 'recurring'
+        }));
       } else {
-        setCategories(data);
+        const [spending, savings] = await Promise.all([
+          apiService.getSpendingCategories(),
+          apiService.getSavingsCategories()
+        ]);
+        data = [...spending, ...savings];
       }
-    });
+      setCategories(data);
+    };
+    fetchCats();
   }, [kind]);
 
   return (
@@ -240,18 +261,6 @@ const TypeBadge: React.FC<{ label: string; color?: string }> = ({ label, color =
     <span className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color }}>{label}</span>
   </div>
 );
-
-const ProgressBar: React.FC<{ value: number; max: number; color?: string; h?: number }> = ({ value, max, color = '#C4903D', h = 4 }) => {
-  const pct = Math.min((value / max) * 100, 100);
-  return (
-    <div className="w-full rounded-full bg-ledger-faint overflow-hidden" style={{ height: h }}>
-      <div 
-        className="h-full rounded-full transition-all duration-700 ease-out" 
-        style={{ width: `${pct}%`, backgroundColor: color }} 
-      />
-    </div>
-  );
-};
 
 export const ExpenseModalContent: React.FC = () => {
   const { closeModal } = useModal();
@@ -396,6 +405,32 @@ export const TransferModalContent: React.FC = () => {
   );
 };
 
+type GoalFormData = {
+  name: string;
+  targetAmount: string;
+  currentAmount: string;
+  category: string;
+  description: string;
+  image: string;
+  icon: string;
+  color: string;
+  eta: string;
+  priority: 'High' | 'Medium' | 'Low';
+};
+
+const defaultGoalForm: GoalFormData = {
+  name: '',
+  targetAmount: '',
+  currentAmount: '',
+  category: '',
+  description: '',
+  image: '',
+  icon: 'flag',
+  color: 'primary',
+  eta: '',
+  priority: 'Medium',
+};
+
 export const AddGoalModalContent: React.FC = () => {
   const { closeModal } = useModal();
   const [loading, setLoading] = useState(false);
@@ -460,32 +495,6 @@ export const AddGoalModalContent: React.FC = () => {
       <PrimaryButton label={loading ? "Creating..." : "Create New Goal"} icon="add_circle" onClick={handleAdd} disabled={loading} />
     </div>
   );
-};
-
-type GoalFormData = {
-  name: string;
-  targetAmount: string;
-  currentAmount: string;
-  category: string;
-  description: string;
-  image: string;
-  icon: string;
-  color: string;
-  eta: string;
-  priority: 'High' | 'Medium' | 'Low';
-};
-
-const defaultGoalForm: GoalFormData = {
-  name: '',
-  targetAmount: '',
-  currentAmount: '',
-  category: '',
-  description: '',
-  image: '',
-  icon: 'flag',
-  color: 'primary',
-  eta: '',
-  priority: 'Medium',
 };
 
 type TransactionFormData = {
@@ -639,9 +648,8 @@ export const EditGoalModalContent: React.FC = () => {
 };
 
 export const QuickAddGoalModalContent: React.FC = () => {
-  const match = useMatch('/wishlist/:id');
   const { closeModal } = useModal();
-  const id = match?.params.id || sessionStorage.getItem('quickAddGoalId') || undefined;
+  const id = sessionStorage.getItem('quickAddGoalId') || undefined;
   const [goal, setGoal] = useState<Goal | null>(null);
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(true);
@@ -1028,7 +1036,7 @@ export const EditTransactionModalContent: React.FC = () => {
 
 export const RecurringCostDetailModalContent: React.FC = () => {
   const { closeModal } = useModal();
-  const recurringName = sessionStorage.getItem('selectedRecurringCostName') || '';
+  const recurringId = sessionStorage.getItem('selectedRecurringCostName') || '';
   const [item, setItem] = useState<RecurringCostSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1036,14 +1044,14 @@ export const RecurringCostDetailModalContent: React.FC = () => {
 
   useEffect(() => {
     const loadRecurringCost = async () => {
-      if (!recurringName) {
+      if (!recurringId) {
         setError('Recurring cost is missing.');
         setLoading(false);
         return;
       }
 
       try {
-        const data = await apiService.getRecurringCostByName(recurringName);
+        const data = await apiService.getRecurringCostById(recurringId);
         if (!data) {
           setError('Recurring cost not found.');
           return;
@@ -1056,7 +1064,7 @@ export const RecurringCostDetailModalContent: React.FC = () => {
     };
 
     loadRecurringCost();
-  }, [recurringName]);
+  }, [recurringId]);
 
   const handleTogglePaid = async () => {
     if (!item) return;
@@ -1064,7 +1072,7 @@ export const RecurringCostDetailModalContent: React.FC = () => {
     setSaving(true);
     setError(null);
     try {
-      const updated = await apiService.setRecurringCostPaidStatus(item.name, !item.isPaid);
+      const updated = await apiService.toggleRecurringPaidStatus(item.name, !item.isPaid);
       setItem(updated);
     } catch {
       setError('Failed to update recurring status.');

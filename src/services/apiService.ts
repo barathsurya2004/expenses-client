@@ -8,68 +8,27 @@ const emitFinanceDataUpdated = () => {
   }
 };
 
-export interface DashboardSummary {
-  balance: number;
-  totalIncome: number;
-  totalExpense: number;
-  recentTransactions: {
-    date: string;
-    label: string;
-    items: Transaction[];
-  }[];
-  goals: Goal[];
-  categories: CategorySpending[];
-  insights: Insight[];
-}
-
 export interface GroupedTransactions {
   date: string;
   label: string;
   items: Transaction[];
 }
 
-export interface BudgetSummary {
-  totalBudget: number;
-  totalSpent: number;
-  totalProgress: number;
-  spendingCategories: CategorySpending[];
-  savingsCategories: CategorySpending[];
-  recurringCategories: CategorySpending[];
-  recurringCards: RecurringCostSummary[];
+export interface MonthlySummary {
+  totalIncome: number;
+  totalExpense: number;
+  netBalance: number;
+  savingsRate: number;
+  incomeSources?: number;
+  transactionCount?: number;
 }
 
-export interface RecurringCostSummary {
-  name: string;
-  icon: string;
-  color?: string;
-  amount: number;
-  isPaid: boolean;
-  nextPayCycle: string;
-  paidOn: string | null;
-  recurringDayOfMonth?: number;
-}
-
-export interface InsightsPageData {
-  header: {
-    monthLabel: string;
-    dayOfMonth: number;
-    daysInMonth: number;
-    daysRemaining: number;
-  };
-  pulseStats: Array<{
-    icon: string;
-    label: string;
-    value: string;
-    sub: string;
-    colorHex: string | null;
-  }>;
-  budgetHealth: {
-    totalCategories: number;
-    healthScore: number;
-    onTrackCount: number;
-    overBudgetCount: number;
-    healthBarColor: string;
-  };
+export interface BudgetHealthStats {
+  healthScore: number;
+  totalCategories: number;
+  onTrackCount: number;
+  overBudgetCount: number;
+  healthBarColor: string;
   overBudgetCategories: Array<{
     name: string;
     icon: string;
@@ -83,46 +42,24 @@ export interface InsightsPageData {
     percentage: number;
     colorHex: string;
   }>;
-  daySpend: Array<{
-    day: string;
-    amount: number;
-    isPeak: boolean;
-    heightPercent: number;
-  }>;
-  peakDay: string;
-  topMerchants: Array<{
-    merchant: string;
-    count: number;
-    rank: number;
-    progress: number;
-    opacity: number;
-  }>;
-  biggestExpense: {
-    amount: number;
-    merchant: string;
-    category: string;
-  } | null;
-  recurring: {
-    recurringPct: number;
-    recurringTotal: number;
-    savingsRate: number;
-    discretionaryPct: number;
-  };
-  last6Months: string[];
-  cashFlowSeries: Array<{
-    month: string;
-    value: number;
-  }>;
-  savingsColorHex: string;
-  healthBarColorHex: string;
-  categoryRows: Array<{
-    name: string;
-    icon: string;
-    percentage: number;
-    colorHex: string;
-  }>;
-  insights: Insight[];
-  transactions: Transaction[];
+}
+
+export interface RecurringCostSummary {
+  name: string;
+  icon: string;
+  color?: string;
+  amount: number;
+  isPaid: boolean;
+  nextPayCycle: string;
+  paidOn: string | null;
+  recurringDayOfMonth?: number;
+}
+
+export interface BudgetOverviewData {
+  totalBudget: number;
+  totalSpent: number;
+  totalProgress: number;
+  categoryCount: number;
 }
 
 const fetchJson = async <T>(url: string): Promise<T> => {
@@ -148,60 +85,26 @@ const fetchMaybeJson = async <T>(url: string): Promise<T | undefined> => {
 };
 
 export const apiService = {
-  getDashboardSummary: async (): Promise<DashboardSummary> => {
-    return fetchJson<DashboardSummary>('/api/dashboard-summary');
+  // Accounting / Stats Service
+  getMonthlySummary: async (): Promise<MonthlySummary> => {
+    return fetchJson<MonthlySummary>('/api/stats/monthly-summary');
   },
 
-  getTransactionsGrouped: async (): Promise<GroupedTransactions[]> => {
-    return fetchJson<GroupedTransactions[]>('/api/transactions-grouped');
+  getBiggestExpense: async (): Promise<{ amount: number; merchant: string; category: string } | null> => {
+    return fetchMaybeJson<{ amount: number; merchant: string; category: string }>('/api/stats/biggest-expense') || null;
+  },
+
+  // Transaction Service
+  getRecentTransactions: async (): Promise<GroupedTransactions[]> => {
+    return fetchJson<GroupedTransactions[]>('/api/transactions/recent');
+  },
+
+  getTransactions: async (): Promise<Transaction[]> => {
+    return fetchJson<Transaction[]>('/api/transactions/all');
   },
 
   getTransactionById: async (id: string): Promise<Transaction | undefined> => {
     return fetchMaybeJson<Transaction>(`/api/transactions/${id}`);
-  },
-
-  getGoals: async (): Promise<Goal[]> => {
-    return fetchJson<Goal[]>('/api/goals');
-  },
-
-  getGoalById: async (id: string): Promise<Goal | undefined> => {
-    return fetchMaybeJson<Goal>(`/api/goals/${id}`);
-  },
-
-  getCategories: async (): Promise<CategorySpending[]> => {
-    return fetchJson<CategorySpending[]>('/api/categories');
-  },
-
-  getInsights: async (): Promise<Insight[]> => {
-    return fetchJson<Insight[]>('/api/insights');
-  },
-
-  getInsightsPageData: async (): Promise<InsightsPageData> => {
-    return fetchJson<InsightsPageData>('/api/insights-page');
-  },
-
-  getBudgetSummary: async (): Promise<BudgetSummary> => {
-    return fetchJson<BudgetSummary>('/api/budget-summary');
-  },
-
-  getRecurringCostByName: async (name: string): Promise<RecurringCostSummary | undefined> => {
-    return fetchMaybeJson<RecurringCostSummary>(`/api/recurring-costs/${encodeURIComponent(name)}`);
-  },
-
-  setRecurringCostPaidStatus: async (name: string, isPaid: boolean): Promise<RecurringCostSummary> => {
-    const response = await fetch(`/api/recurring-costs/${encodeURIComponent(name)}/paid`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isPaid }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update recurring cost status');
-    }
-
-    const updated = await response.json() as RecurringCostSummary;
-    emitFinanceDataUpdated();
-    return updated;
   },
 
   addTransaction: async (data: Omit<Transaction, 'id'>): Promise<Transaction> => {
@@ -246,6 +149,77 @@ export const apiService = {
     }
 
     emitFinanceDataUpdated();
+  },
+
+  // Budget & Category Service
+  getSpendingCategories: async (): Promise<CategorySpending[]> => {
+    return fetchJson<CategorySpending[]>('/api/categories/spending');
+  },
+
+  getSavingsCategories: async (): Promise<CategorySpending[]> => {
+    return fetchJson<CategorySpending[]>('/api/categories/savings');
+  },
+
+  getBudgetHealth: async (): Promise<BudgetHealthStats> => {
+    return fetchJson<BudgetHealthStats>('/api/budgets/health');
+  },
+
+  getSpendingDistribution: async (): Promise<Array<{ name: string; icon: string; percentage: number; colorHex: string; spent: number }>> => {
+    return fetchJson<any[]>('/api/budgets/spending-distribution');
+  },
+
+  getBudgetOverview: async (): Promise<BudgetOverviewData> => {
+    return fetchJson<BudgetOverviewData>('/api/budgets/overview');
+  },
+
+  addCategory: async (data: Omit<CategorySpending, 'percentage' | 'spent'>): Promise<CategorySpending> => {
+    const response = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to add category');
+    }
+
+    const newC = await response.json() as CategorySpending;
+    emitFinanceDataUpdated();
+    return newC;
+  },
+
+  // Subscription Service (Recurring Costs)
+  getRecurringCosts: async (): Promise<RecurringCostSummary[]> => {
+    return fetchJson<RecurringCostSummary[]>('/api/subscriptions');
+  },
+
+  getRecurringCostById: async (id: string): Promise<RecurringCostSummary | undefined> => {
+    return fetchMaybeJson<RecurringCostSummary>(`/api/subscriptions/${encodeURIComponent(id)}`);
+  },
+
+  toggleRecurringPaidStatus: async (id: string, isPaid: boolean): Promise<RecurringCostSummary> => {
+    const response = await fetch(`/api/subscriptions/${encodeURIComponent(id)}/toggle-paid`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isPaid }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update recurring cost status');
+    }
+
+    const updated = await response.json() as RecurringCostSummary;
+    emitFinanceDataUpdated();
+    return updated;
+  },
+
+  // Goal Service
+  getGoals: async (): Promise<Goal[]> => {
+    return fetchJson<Goal[]>('/api/goals');
+  },
+
+  getGoalById: async (id: string): Promise<Goal | undefined> => {
+    return fetchMaybeJson<Goal>(`/api/goals/${id}`);
   },
 
   addGoal: async (data: Omit<Goal, 'id'>): Promise<Goal> => {
@@ -308,19 +282,12 @@ export const apiService = {
     emitFinanceDataUpdated();
   },
 
-  addCategory: async (data: Omit<CategorySpending, 'percentage' | 'spent'>): Promise<CategorySpending> => {
-    const response = await fetch('/api/categories', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+  // Insights Service
+  getTopInsights: async (): Promise<Insight[]> => {
+    return fetchJson<Insight[]>('/api/insights/top');
+  },
 
-    if (!response.ok) {
-      throw new Error('Failed to add category');
-    }
-
-    const newC = await response.json() as CategorySpending;
-    emitFinanceDataUpdated();
-    return newC;
+  getInsights: async (): Promise<Insight[]> => {
+    return fetchJson<Insight[]>('/api/insights/all');
   },
 };
