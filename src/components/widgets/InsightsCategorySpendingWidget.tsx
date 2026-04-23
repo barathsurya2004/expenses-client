@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiService, FINANCE_DATA_UPDATED_EVENT } from '../../services/apiService';
-import type { InsightsPageData } from '../../services/apiService';
 import { ProgressBar } from '../ui/Common';
 import { Animate } from '../ui/Animate';
 import { Skeleton } from '../ui/Skeleton';
 
+type CategoryDistributionRow = {
+    name: string;
+    percentage: number;
+    colorHex: string;
+};
+
 export const InsightsCategorySpendingWidget: React.FC = () => {
-    const [data, setData] = useState<InsightsPageData['categoryRows'] | null>(null);
+    const [data, setData] = useState<CategoryDistributionRow[] | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchData = useCallback(async () => {

@@ -29,7 +29,7 @@ export const BudgetSavingsCategoriesWidget: React.FC = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const categories = await apiService.getSavingsCategories();
+            const categories = await apiService.getCategorySavings();
             setData(categories);
         } finally {
             setLoading(false);

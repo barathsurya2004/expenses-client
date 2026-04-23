@@ -1,14 +1,66 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiService, FINANCE_DATA_UPDATED_EVENT } from '../../services/apiService';
-import type { GroupedTransactions } from '../../services/apiService';
+import type { Transaction } from '../../types';
 import { Animate } from '../ui/Animate';
 import { useModal } from '../../hooks/useModal';
 import { SwipeTransactionRow } from '../ui/SwipeTransactionRow';
 import { Skeleton } from '../ui/Skeleton';
 
+type TransactionGroup = {
+  date: string;
+  label: string;
+  items: Transaction[];
+};
+
+const startOfDay = (date: Date) => {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  return result;
+};
+
+const getDateLabel = (dateString: string): string => {
+  const date = startOfDay(new Date(dateString));
+  const today = startOfDay(new Date());
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.getTime() === today.getTime()) {
+    return 'Today';
+  }
+
+  if (date.getTime() === yesterday.getTime()) {
+    return 'Yesterday';
+  }
+
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+const groupTransactionsByDate = (transactions: Transaction[]): TransactionGroup[] => {
+  const sorted = [...transactions].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
+
+  const map = new Map<string, Transaction[]>();
+  for (const transaction of sorted) {
+    const dateKey = transaction.date.slice(0, 10);
+    const existing = map.get(dateKey);
+    if (existing) {
+      existing.push(transaction);
+    } else {
+      map.set(dateKey, [transaction]);
+    }
+  }
+
+  return Array.from(map.entries()).map(([date, items]) => ({
+    date,
+    label: getDateLabel(date),
+    items,
+  }));
+};
+
 export const TransactionsListWidget: React.FC = () => {
   const { openModal } = useModal();
-  const [groupedTransactions, setGroupedTransactions] = useState<GroupedTransactions[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
@@ -16,7 +68,7 @@ export const TransactionsListWidget: React.FC = () => {
   const fetchData = useCallback(async () => {
     try {
       const data = await apiService.getRecentTransactions();
-      setGroupedTransactions(data);
+      setTransactions(data);
     } finally {
       setLoading(false);
     }
@@ -55,21 +107,19 @@ export const TransactionsListWidget: React.FC = () => {
           <Skeleton className="h-20 rounded-xl" />
         </div>
         <div className="space-y-8">
-            <Skeleton className="h-64 rounded-xl" />
-            <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
         </div>
       </div>
     );
   }
 
-  const allTransactions = groupedTransactions.flatMap(g => g.items);
+  const allTransactions = transactions;
   const totalIncome = allTransactions.filter(t => t.type === 'income').reduce((a, t) => a + t.amount, 0);
   const totalExpense = allTransactions.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0);
 
-  const filteredGroups = groupedTransactions.map(group => ({
-    ...group,
-    items: group.items.filter(t => filter === 'all' || t.type === filter)
-  })).filter(group => group.items.length > 0);
+  const filteredTransactions = allTransactions.filter((t) => filter === 'all' || t.type === filter);
+  const filteredGroups = groupTransactionsByDate(filteredTransactions);
 
   return (
     <div className="space-y-10">

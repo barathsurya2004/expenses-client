@@ -1,20 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { apiService, FINANCE_DATA_UPDATED_EVENT } from '../../services/apiService';
-import type { InsightsPageData } from '../../services/apiService';
+import type { BudgetHealthStats } from '../../services/apiService';
 import { ProgressBar } from '../ui/Common';
 import { Animate } from '../ui/Animate';
 import { Skeleton } from '../ui/Skeleton';
 
 export const InsightsBudgetHealthWidget: React.FC = () => {
-    const [data, setData] = useState<InsightsPageData['budgetHealth'] & { 
-        overBudgetCategories: InsightsPageData['overBudgetCategories'];
-        onTrackCategories: InsightsPageData['onTrackCategories'];
-    } | null>(null);
+    const [data, setData] = useState<BudgetHealthStats | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchData = useCallback(async () => {
         try {
-            const health = await apiService.getBudgetHealth();
+            const health = await apiService.getBudgetHealthStats();
             setData(health);
         } finally {
             setLoading(false);
@@ -36,7 +33,7 @@ export const InsightsBudgetHealthWidget: React.FC = () => {
         <Animate type="slideUp" delay={0.25}>
             <div className="bg-ledger-s2 border border-ledger-border rounded-2xl p-8 space-y-8 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: `linear-gradient(90deg, transparent, ${data.healthBarColor}, transparent)` }} />
-                
+
                 <div className="flex flex-col md:flex-row items-start justify-between gap-6">
                     <div>
                         <h3 className="font-headline text-xl font-bold text-ledger-text">Budget Health</h3>

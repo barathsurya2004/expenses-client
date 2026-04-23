@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService, FINANCE_DATA_UPDATED_EVENT } from '../../services/apiService';
-import type { GroupedTransactions } from '../../services/apiService';
+import type { Transaction } from '../../types';
 import { TransactionItem } from '../ui/Cards';
 import { Animate } from '../ui/Animate';
 import { Skeleton } from '../ui/Skeleton';
 
 export const DashboardRecentTransactionsWidget: React.FC = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState<GroupedTransactions[] | null>(null);
+  const [data, setData] = useState<Transaction[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
@@ -61,13 +61,11 @@ export const DashboardRecentTransactionsWidget: React.FC = () => {
           <button onClick={() => navigate('/transactions')} className="text-[12px] text-ledger-accent hover:underline font-body font-medium">All transactions →</button>
         </div>
         <div className="divide-y divide-ledger-border">
-          {data.slice(0, 1).map(group => (
-            <div key={group.date} className="space-y-1">
-               {group.items.slice(0, 7).map(t => (
-                 <TransactionItem key={t.id} transaction={t} />
-               ))}
-            </div>
-          ))}
+          <div className="space-y-1">
+            {data.slice(0, 7).map((transaction) => (
+              <TransactionItem key={transaction.id} transaction={transaction} />
+            ))}
+          </div>
         </div>
       </div>
     </Animate>

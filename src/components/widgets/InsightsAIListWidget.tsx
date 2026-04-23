@@ -11,7 +11,7 @@ export const InsightsAIListWidget: React.FC = () => {
 
     const fetchData = useCallback(async () => {
         try {
-            const insights = await apiService.getInsights();
+            const insights = await apiService.getAllInsights();
             setData(insights);
         } finally {
             setLoading(false);

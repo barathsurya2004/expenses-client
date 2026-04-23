@@ -8,11 +8,108 @@ const emitFinanceDataUpdated = () => {
   }
 };
 
-export interface GroupedTransactions {
-  date: string;
-  label: string;
-  items: Transaction[];
-}
+const normalizeTransaction = (value: unknown): Transaction | null => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  const merchant = typeof candidate.merchant === 'string' ? candidate.merchant : null;
+  const category = typeof candidate.category === 'string' ? candidate.category : null;
+  const icon = typeof candidate.icon === 'string' ? candidate.icon : 'receipt_long';
+  const rawDate =
+    typeof candidate.date === 'string'
+      ? candidate.date
+      : typeof candidate.transactionDate === 'string'
+        ? candidate.transactionDate
+        : null;
+
+  const rawAmount = candidate.amount;
+  const amount =
+    typeof rawAmount === 'number'
+      ? rawAmount
+      : typeof rawAmount === 'string'
+        ? Number(rawAmount)
+        : NaN;
+
+  const type = candidate.type === 'income' || candidate.type === 'expense' ? candidate.type : null;
+  const explicitId =
+    typeof candidate.id === 'string'
+      ? candidate.id
+      : typeof candidate._id === 'string'
+        ? candidate._id
+        : typeof candidate.id === 'number'
+          ? String(candidate.id)
+          : typeof candidate._id === 'number'
+            ? String(candidate._id)
+            : null;
+
+  if (!merchant || !category || !rawDate || !type || Number.isNaN(amount)) {
+    return null;
+  }
+
+  const userId = typeof candidate.userId === 'string' ? candidate.userId : 'user';
+  const fallbackId = `${userId}-${rawDate}-${merchant}-${amount}`;
+
+  return {
+    id: explicitId ?? fallbackId,
+    merchant,
+    category,
+    amount,
+    date: rawDate,
+    type,
+    icon,
+  };
+};
+
+const normalizeTransactionArray = (payload: unknown): Transaction[] => {
+  if (!Array.isArray(payload)) {
+    return [];
+  }
+
+  return payload
+    .map((value) => normalizeTransaction(value))
+    .filter((transaction): transaction is Transaction => transaction !== null);
+};
+
+const sortTransactionsByDateDesc = (transactions: Transaction[]): Transaction[] => {
+  return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+};
+
+const normalizeTransactionsPayload = (payload: unknown): Transaction[] => {
+  if (Array.isArray(payload)) {
+    return sortTransactionsByDateDesc(normalizeTransactionArray(payload));
+  }
+
+  if (payload && typeof payload === 'object') {
+    const record = payload as Record<string, unknown>;
+
+    if (Array.isArray(record.transactions)) {
+      return sortTransactionsByDateDesc(normalizeTransactionArray(record.transactions));
+    }
+
+    if (Array.isArray(record.data)) {
+      return sortTransactionsByDateDesc(normalizeTransactionArray(record.data));
+    }
+
+    if (Array.isArray(record.items)) {
+      return sortTransactionsByDateDesc(normalizeTransactionArray(record.items));
+    }
+
+    const dateKeys = Object.keys(record).filter((key) => /^\d{4}-\d{2}-\d{2}/.test(key));
+    if (dateKeys.length > 0) {
+      const flattened = dateKeys.flatMap((dateKey) => {
+        const value = record[dateKey];
+        return Array.isArray(value) ? value : [];
+      });
+
+      return sortTransactionsByDateDesc(normalizeTransactionArray(flattened));
+    }
+  }
+
+  return [];
+};
 
 export interface MonthlySummary {
   totalIncome: number;
@@ -62,8 +159,40 @@ export interface BudgetOverviewData {
   categoryCount: number;
 }
 
-const fetchJson = async <T>(url: string): Promise<T> => {
-  const response = await fetch(url, { cache: 'no-store' });
+let apiAuthToken: string | null = null;
+
+export const setApiAuthToken = (token: string | null) => {
+  apiAuthToken = token;
+};
+
+const requestWithAuth = async (
+  url: string,
+  options: RequestInit = {},
+  tokenOverride?: string | null,
+): Promise<Response> => {
+  const headers = new Headers(options.headers);
+  const token = tokenOverride ?? apiAuthToken;
+
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
+  return fetch(url, {
+    cache: 'no-store',
+    ...options,
+    headers,
+  });
+};
+
+const fetchWithAuth = async <T>(url: string, options: RequestInit = {}): Promise<T> => {
+  const initialToken = apiAuthToken;
+  let response = await requestWithAuth(url, options, initialToken);
+
+  // Retry once if the first request raced before token hydration.
+  if (response.status === 401 && !initialToken && apiAuthToken) {
+    response = await requestWithAuth(url, options, apiAuthToken);
+  }
+
   if (!response.ok) {
     throw new Error(`Request failed: ${url}`);
   }
@@ -71,8 +200,15 @@ const fetchJson = async <T>(url: string): Promise<T> => {
   return response.json() as Promise<T>;
 };
 
-const fetchMaybeJson = async <T>(url: string): Promise<T | undefined> => {
-  const response = await fetch(url, { cache: 'no-store' });
+const fetchMaybeWithAuth = async <T>(url: string, options: RequestInit = {}): Promise<T | undefined> => {
+  const initialToken = apiAuthToken;
+  let response = await requestWithAuth(url, options, initialToken);
+
+  // Retry once if the first request raced before token hydration.
+  if (response.status === 401 && !initialToken && apiAuthToken) {
+    response = await requestWithAuth(url, options, apiAuthToken);
+  }
+
   if (response.status === 404) {
     return undefined;
   }
@@ -87,44 +223,44 @@ const fetchMaybeJson = async <T>(url: string): Promise<T | undefined> => {
 export const apiService = {
   // Accounting / Stats Service
   getMonthlySummary: async (): Promise<MonthlySummary> => {
-    return fetchJson<MonthlySummary>('/api/stats/monthly-summary');
+    return fetchWithAuth<MonthlySummary>('/api/stats/monthly-summary');
   },
 
   getBiggestExpense: async (): Promise<{ amount: number; merchant: string; category: string } | null> => {
-    return fetchMaybeJson<{ amount: number; merchant: string; category: string }>('/api/stats/biggest-expense') || null;
+    const result = await fetchMaybeWithAuth<{ amount: number; merchant: string; category: string }>('/api/stats/biggest-expense');
+    return result ?? null;
   },
 
   // Transaction Service
-  getRecentTransactions: async (): Promise<GroupedTransactions[]> => {
-    return fetchJson<GroupedTransactions[]>('/api/transactions/recent');
+  getRecentTransactions: async (): Promise<Transaction[]> => {
+    const payload = await fetchWithAuth<unknown>('/api/transactions/recent');
+    return normalizeTransactionsPayload(payload);
   },
 
   getTransactions: async (): Promise<Transaction[]> => {
-    return fetchJson<Transaction[]>('/api/transactions/all');
+    const payload = await fetchWithAuth<unknown>('/api/transactions');
+    return normalizeTransactionsPayload(payload);
   },
 
   getTransactionById: async (id: string): Promise<Transaction | undefined> => {
-    return fetchMaybeJson<Transaction>(`/api/transactions/${id}`);
+    const payload = await fetchMaybeWithAuth<unknown>(`/api/transactions/${id}`);
+    if (!payload) {
+      return undefined;
+    }
+
+    return normalizeTransaction(payload) ?? undefined;
   },
 
   addTransaction: async (data: Omit<Transaction, 'id'>): Promise<Transaction> => {
-    const response = await fetch('/api/transactions', {
+    return fetchWithAuth<Transaction>('/api/transactions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to add transaction');
-    }
-
-    const newT = await response.json() as Transaction;
-    emitFinanceDataUpdated();
-    return newT;
   },
 
   updateTransaction: async (id: string, updates: Partial<Transaction>): Promise<Transaction> => {
-    const response = await fetch(`/api/transactions/${id}`, {
+    const response = await requestWithAuth(`/api/transactions/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
@@ -140,7 +276,7 @@ export const apiService = {
   },
 
   deleteTransaction: async (id: string): Promise<void> => {
-    const response = await fetch(`/api/transactions/${id}`, {
+    const response = await requestWithAuth(`/api/transactions/${id}`, {
       method: 'DELETE',
     });
 
@@ -152,28 +288,28 @@ export const apiService = {
   },
 
   // Budget & Category Service
-  getSpendingCategories: async (): Promise<CategorySpending[]> => {
-    return fetchJson<CategorySpending[]>('/api/categories/spending');
+  getCategorySpending: async (): Promise<CategorySpending[]> => {
+    return fetchWithAuth<CategorySpending[]>('/api/categories/spending');
   },
 
-  getSavingsCategories: async (): Promise<CategorySpending[]> => {
-    return fetchJson<CategorySpending[]>('/api/categories/savings');
+  getCategorySavings: async (): Promise<CategorySpending[]> => {
+    return fetchWithAuth<CategorySpending[]>('/api/categories/savings');
   },
 
-  getBudgetHealth: async (): Promise<BudgetHealthStats> => {
-    return fetchJson<BudgetHealthStats>('/api/budgets/health');
+  getBudgetHealthStats: async (): Promise<BudgetHealthStats> => {
+    return fetchWithAuth<BudgetHealthStats>('/api/budgets/health');
   },
 
-  getSpendingDistribution: async (): Promise<Array<{ name: string; icon: string; percentage: number; colorHex: string; spent: number }>> => {
-    return fetchJson<any[]>('/api/budgets/spending-distribution');
+  getSpendingDistribution: async (): Promise<any[]> => {
+    return fetchWithAuth<any[]>('/api/budgets/spending-distribution');
   },
 
   getBudgetOverview: async (): Promise<BudgetOverviewData> => {
-    return fetchJson<BudgetOverviewData>('/api/budgets/overview');
+    return fetchWithAuth<BudgetOverviewData>('/api/budgets/overview');
   },
 
   addCategory: async (data: Omit<CategorySpending, 'percentage' | 'spent'>): Promise<CategorySpending> => {
-    const response = await fetch('/api/categories', {
+    const response = await requestWithAuth('/api/categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -190,15 +326,15 @@ export const apiService = {
 
   // Subscription Service (Recurring Costs)
   getRecurringCosts: async (): Promise<RecurringCostSummary[]> => {
-    return fetchJson<RecurringCostSummary[]>('/api/subscriptions');
+    return fetchWithAuth<RecurringCostSummary[]>('/api/subscriptions');
   },
 
   getRecurringCostById: async (id: string): Promise<RecurringCostSummary | undefined> => {
-    return fetchMaybeJson<RecurringCostSummary>(`/api/subscriptions/${encodeURIComponent(id)}`);
+    return fetchMaybeWithAuth<RecurringCostSummary>(`/api/subscriptions/${encodeURIComponent(id)}`);
   },
 
   toggleRecurringPaidStatus: async (id: string, isPaid: boolean): Promise<RecurringCostSummary> => {
-    const response = await fetch(`/api/subscriptions/${encodeURIComponent(id)}/toggle-paid`, {
+    const response = await requestWithAuth(`/api/subscriptions/${encodeURIComponent(id)}/toggle-paid`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isPaid }),
@@ -215,15 +351,15 @@ export const apiService = {
 
   // Goal Service
   getGoals: async (): Promise<Goal[]> => {
-    return fetchJson<Goal[]>('/api/goals');
+    return fetchWithAuth<Goal[]>('/api/goals');
   },
 
   getGoalById: async (id: string): Promise<Goal | undefined> => {
-    return fetchMaybeJson<Goal>(`/api/goals/${id}`);
+    return fetchMaybeWithAuth<Goal>(`/api/goals/${id}`);
   },
 
   addGoal: async (data: Omit<Goal, 'id'>): Promise<Goal> => {
-    const response = await fetch('/api/goals', {
+    const response = await requestWithAuth('/api/goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -239,7 +375,7 @@ export const apiService = {
   },
 
   updateGoal: async (id: string, updates: Partial<Goal>): Promise<Goal> => {
-    const response = await fetch(`/api/goals/${id}`, {
+    const response = await requestWithAuth(`/api/goals/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
@@ -255,7 +391,7 @@ export const apiService = {
   },
 
   contributeToGoal: async (id: string, amount: number): Promise<Goal> => {
-    const response = await fetch(`/api/goals/${id}/contribute`, {
+    const response = await requestWithAuth(`/api/goals/${id}/contribute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ amount }),
@@ -271,7 +407,7 @@ export const apiService = {
   },
 
   deleteGoal: async (id: string): Promise<void> => {
-    const response = await fetch(`/api/goals/${id}`, {
+    const response = await requestWithAuth(`/api/goals/${id}`, {
       method: 'DELETE',
     });
 
@@ -284,10 +420,11 @@ export const apiService = {
 
   // Insights Service
   getTopInsights: async (): Promise<Insight[]> => {
-    return fetchJson<Insight[]>('/api/insights/top');
+    return fetchWithAuth<Insight[]>('/api/insights/top');
   },
 
-  getInsights: async (): Promise<Insight[]> => {
-    return fetchJson<Insight[]>('/api/insights/all');
+  getAllInsights: async (): Promise<Insight[]> => {
+    return fetchWithAuth<Insight[]>('/api/insights/all');
   },
+
 };

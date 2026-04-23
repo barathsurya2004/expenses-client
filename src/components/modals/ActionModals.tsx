@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMatch } from 'react-router-dom';
 import { apiService } from '../../services/apiService';
-import type { CategorySpending, Goal, Transaction } from '../../types';
+import type { CategorySpending, Goal } from '../../types';
 import { useModal } from '../../hooks/useModal';
 import type { RecurringCostSummary } from '../../services/apiService';
 
@@ -151,9 +151,9 @@ const CategorySelect: React.FC<{
     const fetchCats = async () => {
       let data: CategorySpending[] = [];
       if (kind === 'spending') {
-        data = await apiService.getSpendingCategories();
+        data = await apiService.getCategorySpending();
       } else if (kind === 'savings') {
-        data = await apiService.getSavingsCategories();
+        data = await apiService.getCategorySavings();
       } else if (kind === 'recurring') {
         const recurring = await apiService.getRecurringCosts();
         // Map RecurringCostSummary to CategorySpending if needed, or just use names
@@ -168,8 +168,8 @@ const CategorySelect: React.FC<{
         }));
       } else {
         const [spending, savings] = await Promise.all([
-          apiService.getSpendingCategories(),
-          apiService.getSavingsCategories()
+          apiService.getCategorySpending(),
+          apiService.getCategorySavings()
         ]);
         data = [...spending, ...savings];
       }
@@ -253,7 +253,7 @@ const ErrorBanner: React.FC<{ message: string }> = ({ message }) => (
 );
 
 const TypeBadge: React.FC<{ label: string; color?: string }> = ({ label, color = '#C4903D' }) => (
-  <div 
+  <div
     className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-opacity-10 transition-all"
     style={{ backgroundColor: `${color}14`, borderColor: `${color}30` }}
   >
@@ -373,15 +373,15 @@ export const TransferModalContent: React.FC = () => {
   return (
     <div className="flex flex-col gap-4">
       <InputField label="Amount" placeholder="₹ 0.00" type="number" icon="swap_horiz" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
-      
+
       <div className="flex flex-col">
         <FieldLabel>Transfer Route</FieldLabel>
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
             <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[16px] text-ledger-dim pointer-events-none">account_balance_wallet</span>
-            <input 
-              placeholder="From" 
-              value={form.from} 
+            <input
+              placeholder="From"
+              value={form.from}
               onChange={e => setForm({ ...form, from: e.target.value })}
               className="w-full bg-ledger-s2 border border-ledger-border rounded-[12px] pl-[42px] pr-3 py-3 text-[13.5px] font-medium text-ledger-text outline-none transition-all focus:border-ledger-accent/40 font-body"
             />
@@ -389,9 +389,9 @@ export const TransferModalContent: React.FC = () => {
           <span className="material-symbols-outlined text-ledger-dim text-[18px] flex-shrink-0">arrow_forward</span>
           <div className="flex-1 relative">
             <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[16px] text-ledger-dim pointer-events-none">savings</span>
-            <input 
-              placeholder="To" 
-              value={form.to} 
+            <input
+              placeholder="To"
+              value={form.to}
               onChange={e => setForm({ ...form, to: e.target.value })}
               className="w-full bg-ledger-s2 border border-ledger-border rounded-[12px] pl-[42px] pr-3 py-3 text-[13.5px] font-medium text-ledger-text outline-none transition-all focus:border-ledger-accent/40 font-body"
             />
@@ -465,12 +465,12 @@ export const AddGoalModalContent: React.FC = () => {
   return (
     <div className="flex flex-col gap-4">
       <InputField label="Goal Name" placeholder="e.g. MacBook Pro M4" value={form.name} onChange={(e) => updateField('name', e.target.value)} icon="flag" />
-      
+
       <div className="grid grid-cols-2 gap-4">
         <InputField label="Target Amount" type="number" placeholder="₹ 0.00" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} icon="target" />
         <InputField label="Starting Savings" type="number" placeholder="₹ 0.00" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} icon="account_balance_wallet" />
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <InputField label="Category" placeholder="Electronics..." value={form.category} onChange={(e) => updateField('category', e.target.value)} icon="category" />
         <SelectField label="Priority" icon="priority_high" value={form.priority} onChange={v => updateField('priority', v as GoalFormData['priority'])}>
@@ -482,11 +482,11 @@ export const AddGoalModalContent: React.FC = () => {
 
       <InputField label="Image URL" placeholder="https://images.unsplash.com/..." value={form.image} onChange={(e) => updateField('image', e.target.value)} icon="image" />
 
-      <TextareaField 
-        label="Description" 
-        placeholder="Why are you saving for this?" 
-        value={form.description} 
-        onChange={(e) => updateField('description', e.target.value)} 
+      <TextareaField
+        label="Description"
+        placeholder="Why are you saving for this?"
+        value={form.description}
+        onChange={(e) => updateField('description', e.target.value)}
       />
 
       <IconPicker value={form.icon} onChange={(v) => updateField('icon', v)} />
@@ -613,12 +613,12 @@ export const EditGoalModalContent: React.FC = () => {
       {error && <ErrorBanner message={error} />}
 
       <InputField label="Goal Name" placeholder="e.g. MacBook Pro M4" value={form.name} onChange={(e) => updateField('name', e.target.value)} icon="flag" />
-      
+
       <div className="grid grid-cols-2 gap-4">
         <InputField label="Target Amount" type="number" placeholder="₹ 0.00" value={form.targetAmount} onChange={(e) => updateField('targetAmount', e.target.value)} icon="target" />
         <InputField label="Current Savings" type="number" placeholder="₹ 0.00" value={form.currentAmount} onChange={(e) => updateField('currentAmount', e.target.value)} icon="account_balance_wallet" />
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <InputField label="Category" placeholder="Electronics..." value={form.category} onChange={(e) => updateField('category', e.target.value)} icon="category" />
         <SelectField label="Priority" icon="priority_high" value={form.priority} onChange={v => updateField('priority', v as GoalFormData['priority'])}>
@@ -632,11 +632,11 @@ export const EditGoalModalContent: React.FC = () => {
 
       <InputField label="ETA" placeholder="e.g. Dec 2026 or 6 months" value={form.eta} onChange={(e) => updateField('eta', e.target.value)} icon="schedule" />
 
-      <TextareaField 
-        label="Description" 
-        placeholder="Why are you saving for this?" 
-        value={form.description} 
-        onChange={(e) => updateField('description', e.target.value)} 
+      <TextareaField
+        label="Description"
+        placeholder="Why are you saving for this?"
+        value={form.description}
+        onChange={(e) => updateField('description', e.target.value)}
       />
 
       <IconPicker value={form.icon} onChange={(v) => updateField('icon', v)} />
@@ -747,26 +747,26 @@ export const QuickAddGoalModalContent: React.FC = () => {
         </div>
         {/* Progress */}
         <div className="h-[5px] rounded-full bg-ledger-faint overflow-hidden relative">
-          <div 
-            className="absolute inset-y-0 left-0 bg-ledger-accent/25 transition-all duration-500 ease-out" 
-            style={{ width: `${afterPct}%` }} 
+          <div
+            className="absolute inset-y-0 left-0 bg-ledger-accent/25 transition-all duration-500 ease-out"
+            style={{ width: `${afterPct}%` }}
           />
-          <div 
-            className="absolute inset-y-0 left-0 bg-ledger-accent transition-all duration-300" 
-            style={{ width: `${progress}%` }} 
+          <div
+            className="absolute inset-y-0 left-0 bg-ledger-accent transition-all duration-300"
+            style={{ width: `${progress}%` }}
           />
         </div>
         <p className="text-[10px] text-ledger-dim/60 text-right mt-1.5">{Math.round(afterPct)}% after this add</p>
       </div>
 
-      <InputField 
-        label="Amount to Add" 
-        placeholder="₹ 0.00" 
-        type="number" 
-        icon="add_circle" 
-        value={amount} 
+      <InputField
+        label="Amount to Add"
+        placeholder="₹ 0.00"
+        type="number"
+        icon="add_circle"
+        value={amount}
         onChange={e => { setAmount(e.target.value); setError(""); }}
-        hint={`Max: ₹${remaining.toLocaleString()}`} 
+        hint={`Max: ₹${remaining.toLocaleString()}`}
       />
 
       {/* Preset chips */}
@@ -774,10 +774,10 @@ export const QuickAddGoalModalContent: React.FC = () => {
         {[0.25, 0.5, 0.75, 1].map((frac, i) => {
           const labels = ["25%", "50%", "75%", "All"];
           return (
-            <button 
-              key={frac} 
+            <button
+              key={frac}
               type="button"
-              onClick={() => setPresetAmount(frac)} 
+              onClick={() => setPresetAmount(frac)}
               className={`py-2 rounded-[10px] border text-[11px] font-bold transition-all duration-150 ${frac === 1 ? 'border-ledger-accent/25 bg-ledger-accent/10 text-ledger-accent' : 'border-ledger-border bg-ledger-s2 text-ledger-muted hover:text-ledger-text'}`}
             >
               {labels[i]}
@@ -815,7 +815,7 @@ export const AdjustTargetModalContent: React.FC<{ initialAmount?: number }> = ({
   return (
     <div className="flex flex-col gap-4">
       <InputField label="New Target Amount" placeholder={`Current: ₹${initialAmount?.toLocaleString()}`} type="number" icon="target" value={amount} onChange={e => setAmount(e.target.value)} />
-      <InputField label="Reason for adjustment" placeholder="Optional" icon="notes" value="" onChange={() => {}} />
+      <InputField label="Reason for adjustment" placeholder="Optional" icon="notes" value="" onChange={() => { }} />
       <PrimaryButton label={loading ? "Updating..." : "Update Target"} icon="check_circle" onClick={handleUpdate} disabled={loading} />
     </div>
   );
@@ -1098,13 +1098,13 @@ export const RecurringCostDetailModalContent: React.FC = () => {
             <p className="text-[9px] text-ledger-dim uppercase tracking-[0.16em] mb-1.5 ml-0.5">Recurring Cost</p>
             <p className="text-[17px] font-bold text-ledger-text ml-0.5">{item.name}</p>
           </div>
-          <span 
+          <span
             className={`text-[9px] font-bold uppercase tracking-[0.14em] px-2.5 py-1.5 rounded-full border bg-opacity-10 transition-all ${item.isPaid ? 'bg-ledger-income border-ledger-income/25 text-ledger-income' : 'bg-ledger-expense border-ledger-expense/25 text-ledger-expense'}`}
           >
             {item.isPaid ? 'Paid' : 'Pending'}
           </span>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-2 mb-2">
           <div className="bg-ledger-s1 rounded-[10px] p-3 border border-ledger-border/50">
             <p className="text-[9px] text-ledger-dim uppercase tracking-[0.12em] mb-1.5">Amount</p>
@@ -1115,7 +1115,7 @@ export const RecurringCostDetailModalContent: React.FC = () => {
             <p className="text-[13.5px] font-semibold text-ledger-text">{item.nextPayCycle}</p>
           </div>
         </div>
-        
+
         <div className="bg-ledger-s1 rounded-[10px] p-3 border border-ledger-border/50">
           <p className="text-[9px] text-ledger-dim uppercase tracking-[0.12em] mb-1.5">Payment State</p>
           <p className="text-[12.5px] text-ledger-muted leading-relaxed">
