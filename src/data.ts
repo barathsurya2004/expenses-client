@@ -1,105 +1,22 @@
 import type { Transaction, WishlistItem, Budget, Subscription, CategoryMeta, Currency, CurrencyCode } from './types';
 export type { CurrencyCode };
-import { RESOURCES } from './resources';
 
-export const SEED_TRANSACTIONS: Transaction[] = [
-  // Today
-  { id: 't1', amount: 480, category: 'Groceries', merchant: 'BigBasket', date: '2026-05-14T09:12:00', type: 'expense', status: 'pending', tags: ['weekly'] },
-  { id: 't2', amount: 220, category: 'Transport', merchant: 'Uber — Indiranagar', date: '2026-05-14T08:30:00', type: 'expense', status: 'cleared', tags: [] },
-  { id: 't3', amount: 145, category: 'Coffee', merchant: 'Third Wave Coffee', date: '2026-05-14T07:55:00', type: 'expense', status: 'cleared', tags: ['guilty-pleasure'] },
-  // Yesterday
-  { id: 't4', amount: 1280, category: 'Dining', merchant: 'Toit Brewpub', date: '2026-05-13T20:42:00', type: 'expense', status: 'cleared', tags: ['friends'] },
-  { id: 't5', amount: 199, category: 'Subscriptions', merchant: 'Netflix', date: '2026-05-13T11:00:00', type: 'expense', status: 'cleared', tags: ['recurring'] },
-  { id: 't6', amount: 350, category: 'Transport', merchant: 'Namma Metro', date: '2026-05-13T09:14:00', type: 'expense', status: 'cleared', tags: [] },
-  // 2 days
-  { id: 't7', amount: 2400, category: 'Shopping', merchant: 'Decathlon', date: '2026-05-12T17:30:00', type: 'expense', status: 'cleared', tags: ['fitness'] },
-  { id: 't8', amount: 145, category: 'Coffee', merchant: 'Blue Tokai', date: '2026-05-12T08:10:00', type: 'expense', status: 'cleared', tags: ['guilty-pleasure'] },
-  // This week
-  { id: 't9', amount: 35000, category: 'Salary', merchant: 'Acme Corp', date: '2026-05-11T09:00:00', type: 'income', status: 'cleared', tags: ['salary'] },
-  { id: 't10', amount: 880, category: 'Dining', merchant: 'Truffles', date: '2026-05-11T13:20:00', type: 'expense', status: 'cleared', tags: [] },
-  { id: 't11', amount: 1450, category: 'Groceries', merchant: 'Nature\u2019s Basket', date: '2026-05-10T11:00:00', type: 'expense', status: 'cleared', tags: ['weekly'] },
-  { id: 't12', amount: 320, category: 'Coffee', merchant: 'Araku Coffee', date: '2026-05-09T08:30:00', type: 'expense', status: 'cleared', tags: ['guilty-pleasure'] },
-  { id: 't13', amount: 4500, category: 'Hobbies', merchant: 'Crossword Books', date: '2026-05-08T16:00:00', type: 'expense', status: 'cleared', tags: ['art-supplies'] },
-  // Last week
-  { id: 't14', amount: 35000, category: 'Rent', merchant: 'Landlord transfer', date: '2026-05-05T10:00:00', type: 'expense', status: 'cleared', tags: ['recurring'] },
-  { id: 't15', amount: 1850, category: 'Utilities', merchant: 'BESCOM', date: '2026-05-04T18:00:00', type: 'expense', status: 'cleared', tags: ['recurring'] },
-  { id: 't16', amount: 599, category: 'Subscriptions', merchant: 'Spotify Family', date: '2026-05-03T11:00:00', type: 'expense', status: 'cleared', tags: ['recurring'] },
-  { id: 't17', amount: 15000, category: 'SIP', merchant: 'Parag Parikh Flexi', date: '2026-05-02T09:00:00', type: 'expense', status: 'cleared', tags: ['investment'] },
-  { id: 't18', amount: 1300, category: 'Dining', merchant: 'Burma Burma', date: '2026-05-02T20:00:00', type: 'expense', status: 'cleared', tags: ['friends'] },
-];
+export const SEED_TRANSACTIONS: Transaction[] = [];
 
-export const SEED_WISHLIST: WishlistItem[] = [
-  { id: 'w1', name: 'Sony WH-1000XM6', price: 34990, saved: 18500, priority: 'high', emoji: '🎧', allocation: 3500,
-    image: RESOURCES.imgSony,
-    category: 'Audio', brand: 'Sony', url: 'sony.com',
-    notes: 'Industry-leading noise cancellation. Replace the XM4s once flights pick back up.' },
-  { id: 'w2', name: 'Kyoto trip, 8 days', price: 145000, saved: 42000, priority: 'high', emoji: '🗾', allocation: 8000,
-    image: RESOURCES.imgKyoto,
-    category: 'Travel', brand: 'Trip', url: 'self-planned',
-    notes: 'Late April cherry blossom window. Flights + ryokan + day in Nara.' },
-  { id: 'w3', name: 'Aer Travel Pack 3', price: 22500, saved: 22500, priority: 'medium', emoji: '🎒', allocation: 0,
-    image: RESOURCES.imgAer,
-    category: 'Gear', brand: 'Aer', url: 'aersf.com',
-    notes: 'Carry-on ready. Funded — order anytime.' },
-  { id: 'w4', name: 'Mechanical keyboard', price: 18900, saved: 4200, priority: 'medium', emoji: '⌨️', allocation: 1500,
-    image: RESOURCES.imgKeychron,
-    category: 'Desk setup', brand: 'Keychron Q1', url: 'keychron.com',
-    notes: 'Custom build — gateron browns, PBT keycaps.' },
-  { id: 'w5', name: 'Iaido starter set', price: 28000, saved: 2400, priority: 'low', emoji: '⚔️', allocation: 800,
-    image: RESOURCES.imgIaido,
-    category: 'Hobby', brand: 'Tozando', url: 'tozandoshop.com',
-    notes: 'Iaito + obi + dogi. Get past beginner cycle first.' },
-  { id: 'w6', name: 'JLPT N4 registration', price: 6200, saved: 1800, priority: 'high', emoji: '🇯🇵', allocation: 1200,
-    image: RESOURCES.imgJLPT,
-    category: 'Education', brand: 'JLPT', url: 'jlpt.jp',
-    notes: 'July sitting. Need to register by April 30.' },
-];
+export const SEED_WISHLIST: WishlistItem[] = [];
 
 export const SEED_BUDGET: Budget = {
-  income: 145000,
+  income: 0,
   tiers: {
-    needs: { label: 'Fixed & Recurring', target: 0.50, categories: [
-      { id: 'rent', name: 'Rent', limit: 35000, spent: 35000, icon: 'home', color: 'blue', frequency: 'monthly', paid: true, due: 'May 1' },
-      { id: 'electricity', name: 'Electricity', limit: 1850, spent: 1850, icon: 'zap', color: 'amber', frequency: 'monthly', paid: true, due: 'May 4' },
-      { id: 'internet', name: 'Internet', limit: 1199, spent: 0, icon: 'wifi', color: 'blue', frequency: 'monthly', paid: false, due: 'May 20' },
-      { id: 'phone', name: 'Phone', limit: 599, spent: 599, icon: 'phone', color: 'green', frequency: 'monthly', paid: true, due: 'May 5' },
-      { id: 'subs', name: 'Subscriptions', limit: 1500, spent: 798, icon: 'repeat', color: 'plum', frequency: 'monthly', paid: false, due: 'May 22' },
-      { id: 'gym', name: 'Gym', limit: 1499, spent: 0, icon: 'dumbbell', color: 'clay', frequency: 'monthly', paid: false, due: 'May 27' },
-    ]},
-    savings: { label: 'Savings & Investments', target: 0.20, categories: [
-      { id: 'sip', name: 'SIP — Index', limit: 15000, spent: 15000, icon: 'trending-up', color: 'green' },
-      { id: 'emerg', name: 'Emergency fund', limit: 8000, spent: 8000, icon: 'shield', color: 'green' },
-      { id: 'wish', name: 'Wishlist pool', limit: 15000, spent: 15000, icon: 'star', color: 'copper' },
-    ]},
-    wants: { label: 'Discretionary', target: 0.30, categories: [
-      { id: 'groceries', name: 'Groceries', limit: 12000, spent: 1930, icon: 'shopping-bag', color: 'green' },
-      { id: 'transport', name: 'Transport', limit: 4000, spent: 570, icon: 'car', color: 'blue' },
-      { id: 'dining', name: 'Dining', limit: 5000, spent: 3460, icon: 'utensils', color: 'copper' },
-      { id: 'coffee', name: 'Coffee', limit: 2000, spent: 610, icon: 'coffee', color: 'amber' },
-      { id: 'shopping', name: 'Shopping', limit: 6000, spent: 2400, icon: 'shopping-cart', color: 'plum' },
-      { id: 'hobbies', name: 'Hobbies', limit: 4000, spent: 4500, icon: 'palette', color: 'clay' },
-      { id: 'entertainment', name: 'Entertainment', limit: 2000, spent: 200, icon: 'film', color: 'blue' },
-    ]},
+    needs: { label: 'Fixed & Recurring', target: 0.50, categories: [] },
+    savings: { label: 'Savings & Investments', target: 0.20, categories: [] },
+    wants: { label: 'Discretionary', target: 0.30, categories: [] },
   }
 };
 
-export const SEED_SUBSCRIPTIONS: Subscription[] = [
-  { id: 's1', name: 'Netflix', amount: 199, prevAmount: 149, raised: true, frequency: 'monthly', renew: 'May 22' },
-  { id: 's2', name: 'Spotify Family', amount: 599, prevAmount: 599, raised: false, frequency: 'monthly', renew: 'Jun 03' },
-  { id: 's3', name: 'iCloud 200GB', amount: 219, prevAmount: 219, raised: false, frequency: 'monthly', renew: 'May 28' },
-  { id: 's4', name: 'Notion', amount: 750, prevAmount: 750, raised: false, frequency: 'monthly', renew: 'Jun 10' },
-  { id: 's5', name: 'Audible', amount: 199, prevAmount: 199, raised: false, frequency: 'monthly', renew: 'May 30', warning: 'unused 47 days' },
-];
+export const SEED_SUBSCRIPTIONS: Subscription[] = [];
 
-export const SEED_HISTORY: Record<string, number[]> = {
-  Dining:        [3200, 3400, 3000, 3650, 3800, 4100, 4300, 4500, 4700, 4900, 5100, 3460],
-  Coffee:        [ 850,  920,  900, 1100, 1200, 1300, 1500, 1700, 1900, 2050, 2200,  610],
-  Groceries:     [10500,11000,10200,10800,11500,11800,12000,12300,12100,11900,12200,1930],
-  Shopping:      [4500, 3200, 5500, 6800, 4900, 5200, 6100, 5800, 6900, 7500, 6200, 2400],
-  Transport:     [3400, 3600, 3500, 3800, 3700, 3900, 4000, 4200, 4100, 4000, 4200,  570],
-  Hobbies:       [1200, 2400, 1800, 3000, 4500, 2200, 3800, 4000, 4200, 4400, 4800, 4500],
-  Entertainment: [1800, 1900, 1500, 1700, 2000, 1800, 2100, 1900, 2200, 2000, 1800,  200],
-};
+export const SEED_HISTORY: Record<string, number[]> = {};
 
 export const PRIORITY_COLORS: Record<string, { bg: string, fg: string }> = {
   high:   { bg: 'var(--clay-tint)', fg: 'var(--clay)' },
@@ -194,9 +111,10 @@ export function dayKey(d: string | Date) {
 
 export function relativeDay(d: string | Date) {
   const dt = new Date(d);
-  const today = new Date('2026-05-14T00:00:00');
+  const today = new Date();
   const dtMidnight = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-  const diffDays = Math.round((today.getTime() - dtMidnight.getTime()) / 86400000);
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffDays = Math.round((todayMidnight.getTime() - dtMidnight.getTime()) / 86400000);
   if (diffDays === 0) return 'Today';
   if (diffDays === 1) return 'Yesterday';
   if (diffDays < 7 && diffDays > 0) return dt.toLocaleDateString('en-US', { weekday: 'long' });

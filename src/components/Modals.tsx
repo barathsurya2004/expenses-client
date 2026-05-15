@@ -64,48 +64,43 @@ interface AddTransactionModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (data: any) => void;
+  fixedCategories: BudgetCategory[];
 }
 
-export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, onClose, onSave }) => {
+export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, onClose, onSave, fixedCategories }) => {
   const [type, setType] = useState<'expense' | 'income' | 'recurring'>('expense');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Dining');
   const [merchant, setMerchant] = useState('');
   const [notes, setNotes] = useState('');
-  const [frequency, setFrequency] = useState<'monthly' | 'yearly' | 'weekly' | 'daily'>('monthly');
   const [paid, setPaid] = useState(false);
 
   useEffect(() => {
     if (open) {
       setType('expense'); setAmount(''); setCategory('Dining'); setMerchant(''); setNotes('');
-      setFrequency('monthly'); setPaid(false);
+      setPaid(false);
     }
   }, [open]);
 
+  useEffect(() => {
+    if (type === 'recurring' && fixedCategories.length > 0) {
+      setCategory(fixedCategories[0].name);
+      setPaid(fixedCategories[0].paid || false);
+    }
+  }, [type, fixedCategories]);
+
   const incomeCats = ['Salary', 'Other Income'];
   const expenseCats = CATEGORY_LIST.filter(c => c !== 'Salary');
-  const recurringCats = CATEGORY_LIST.filter(c => c !== 'Salary'); // Could refine this list
-  const cats = type === 'income' ? incomeCats : (type === 'recurring' ? recurringCats : expenseCats);
+  const cats = type === 'income' ? incomeCats : (type === 'recurring' ? fixedCategories.map(c => c.name) : expenseCats);
 
   const submit = () => {
-    const n = parseFloat(amount);
-    if (!n || n <= 0) return;
-    
     if (type === 'recurring') {
-      onSave({
-        id: 'c_' + Math.random().toString(36).slice(2, 8),
-        name: merchant || category,
-        limit: n,
-        spent: paid ? n : 0,
-        icon: 'repeat',
-        color: 'plum',
-        frequency,
-        paid,
-        due: 'Soon',
-        type: 'recurring',
-        notes: notes.trim()
-      });
+      const cat = fixedCategories.find(c => c.name === category);
+      if (!cat) return;
+      onSave({ ...cat, paid, type: 'recurring_update' });
     } else {
+      const n = parseFloat(amount);
+      if (!n || n <= 0) return;
       onSave({
         id: 't_' + Math.random().toString(36).slice(2, 8),
         amount: n,
@@ -123,19 +118,14 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, 
   return (
     <BottomSheet
       open={open} onClose={onClose} title="Add Entry"
-      footer={<PrimaryButton variant="copper" onClick={submit} disabled={!amount} icon="check">
-        {type === 'recurring' ? 'Add to Budget' : 'Add to Ledger'}
+      footer={<PrimaryButton variant="copper" onClick={submit} disabled={type !== 'recurring' && !amount} icon="check">
+        {type === 'recurring' ? 'Update Status' : 'Add to Ledger'}
       </PrimaryButton>}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <Segmented
-          fullWidth
-          value={type}
-          onChange={(v) => {
-            const nextType = v as 'expense' | 'income' | 'recurring';
-            setType(nextType);
-            if (nextType === 'recurring' && category === 'Dining') setCategory('Subscriptions');
-          }}
+          fullWidth value={type}
+          onChange={(v) => setType(v as any)}
           options={[
             { value: 'expense', label: 'Expense' },
             { value: 'income', label: 'Income' },
@@ -143,96 +133,59 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, 
           ]}
         />
 
-        <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
-          <div style={{
-            fontSize: 13, fontWeight: 600, color: 'var(--ink-3)',
-            letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8,
-          }}>Amount</div>
-          <div style={{
-            display: 'inline-flex', alignItems: 'baseline', gap: 6,
-            color: type === 'income' ? 'var(--green)' : (type === 'recurring' ? 'var(--plum)' : 'var(--ink)'),
-          }}>
-            <span style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.5 }}>{(type === 'income' ? '+' : '') + currencySymbol()}</span>
-            <input
-              type="number" inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)}
-              placeholder="0" autoFocus
-              style={{
-                width: 220, border: 'none', outline: 'none', background: 'transparent',
-                fontFamily: 'inherit', fontSize: 64, fontWeight: 600, letterSpacing: -2,
-                color: 'inherit', textAlign: 'left',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            />
+        {type !== 'recurring' && (
+          <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>Amount</div>
+            <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, color: type === 'income' ? 'var(--green)' : 'var(--ink)' }}>
+              <span style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.5 }}>{(type === 'income' ? '+' : '') + currencySymbol()}</span>
+              <input type="number" inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0" autoFocus style={{ width: 220, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', fontSize: 64, fontWeight: 600, letterSpacing: -2, color: 'inherit', textAlign: 'left', fontVariantNumeric: 'tabular-nums' }} />
+            </div>
           </div>
-        </div>
+        )}
 
         <Card padding={0} style={{ overflow: 'hidden' }}>
           <ModalRow label="Category">
-            <select value={category} onChange={e => setCategory(e.target.value)} style={selectStyle}>
+            <select value={category} onChange={e => {
+              const val = e.target.value;
+              setCategory(val);
+              if (type === 'recurring') {
+                const cat = fixedCategories.find(c => c.name === val);
+                if (cat) setPaid(cat.paid || false);
+              }
+            }} style={selectStyle}>
               {cats.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </ModalRow>
-          <Divider />
-          <ModalRow label={type === 'recurring' ? 'Name' : 'Merchant'}>
-            <input value={merchant} onChange={e => setMerchant(e.target.value)} placeholder={type === 'recurring' ? 'e.g. Rent, Netflix' : 'Where?'} style={inputStyle} />
-          </ModalRow>
           
+          {type !== 'recurring' && (
+            <>
+              <Divider />
+              <ModalRow label="Merchant"><input value={merchant} onChange={e => setMerchant(e.target.value)} placeholder="Where?" style={inputStyle} /></ModalRow>
+              <Divider />
+              <ModalRow label="Date"><div style={{ color: 'var(--ink-2)', fontSize: 16 }}>Today, May 14</div></ModalRow>
+            </>
+          )}
+
           {type === 'recurring' && (
             <>
               <Divider />
-              <ModalRow label="Frequency">
-                <select value={frequency} onChange={e => setFrequency(e.target.value as any)} style={selectStyle}>
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                </select>
-              </ModalRow>
-              <Divider />
               <ModalRow label="Paid Status">
                 <div style={{ display: 'flex', gap: 6 }}>
-                  <div 
-                    onClick={() => setPaid(false)}
-                    className="press"
-                    style={{
-                      padding: '8px 14px', borderRadius: 10,
-                      fontSize: 13, fontWeight: 700,
-                      background: !paid ? 'var(--clay-tint)' : 'var(--surface-3)',
-                      color: !paid ? 'var(--clay)' : 'var(--ink-4)',
-                    }}
-                  >Unpaid</div>
-                  <div 
-                    onClick={() => setPaid(true)}
-                    className="press"
-                    style={{
-                      padding: '8px 14px', borderRadius: 10,
-                      fontSize: 13, fontWeight: 700,
-                      background: paid ? 'var(--green-tint)' : 'var(--surface-3)',
-                      color: paid ? 'var(--green)' : 'var(--ink-4)',
-                    }}
-                  >Paid</div>
+                  <div onClick={() => setPaid(false)} className="press" style={{ padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: !paid ? 'var(--clay-tint)' : 'var(--surface-3)', color: !paid ? 'var(--clay)' : 'var(--ink-4)' }}>Unpaid</div>
+                  <div onClick={() => setPaid(true)} className="press" style={{ padding: '8px 14px', borderRadius: 10, fontSize: 13, fontWeight: 700, background: paid ? 'var(--green-tint)' : 'var(--surface-3)', color: paid ? 'var(--green)' : 'var(--ink-4)' }}>Paid</div>
                 </div>
               </ModalRow>
             </>
           )}
-
-          {type !== 'recurring' && (
-            <>
-              <Divider />
-              <ModalRow label="Date">
-                <div style={{ color: 'var(--ink-2)', fontSize: 16 }}>Today, May 14</div>
-              </ModalRow>
-            </>
-          )}
         </Card>
 
-        <Card padding={0}>
-          <ModalRow label="Notes" stack>
-            <input value={notes} onChange={e => setNotes(e.target.value)}
-                   placeholder="Optional notes..."
-                   style={{ ...inputStyle, width: '100%', textAlign: 'left' }} />
-          </ModalRow>
-        </Card>
+        {type !== 'recurring' && (
+          <Card padding={0}>
+            <ModalRow label="Notes" stack>
+              <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes..." style={{ ...inputStyle, width: '100%', textAlign: 'left' }} />
+            </ModalRow>
+          </Card>
+        )}
       </div>
     </BottomSheet>
   );

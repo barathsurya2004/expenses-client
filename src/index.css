@@ -35,7 +35,7 @@
   --shadow-modal: 0 20px 60px rgba(0,0,0,0.25);
 }
 
-[data-theme="dark"] {
+:root[data-theme="dark"] {
   --bg: #0E0C0A;
   --bg-2: #16140F;
   --surface: #1C1916;

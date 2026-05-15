@@ -12,13 +12,41 @@ import { SettingsScreen } from './pages/SettingsScreen';
 import { LoginScreen } from './pages/LoginScreen';
 import { AddTransactionModal, AddWishlistModal, EditCategoryModal, TransactionEditModal, AllocateModal } from './components/Modals';
 
+// Persistence helpers
+const STORAGE_KEYS = {
+  SETTINGS: 'finance_settings',
+  USER: 'finance_user',
+  TRANSACTIONS: 'finance_transactions',
+  WISHLIST: 'finance_wishlist',
+  BUDGET: 'finance_budget',
+  UNALLOCATED: 'finance_unallocated'
+};
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : fallback;
+  } catch (e) {
+    console.warn(`Error loading ${key}:`, e);
+    return fallback;
+  }
+}
+
+function saveToStorage(key: string, data: any) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.warn(`Error saving ${key}:`, e);
+  }
+}
+
 export default function App() {
   // App state
-  const [user, setUser] = useState({ name: 'Barath', email: 'barath@example.com', signedIn: true });
-  const [transactions, setTransactions] = useState<Transaction[]>(SEED_TRANSACTIONS);
-  const [wishlist, setWishlist] = useState<WishlistItem[]>(SEED_WISHLIST);
-  const [budget, setBudget] = useState<Budget>(SEED_BUDGET);
-  const [unallocated, setUnallocated] = useState(12000);
+  const [user, setUser] = useState(() => loadFromStorage(STORAGE_KEYS.USER, { name: '', email: '', signedIn: false }));
+  const [transactions, setTransactions] = useState<Transaction[]>(() => loadFromStorage(STORAGE_KEYS.TRANSACTIONS, SEED_TRANSACTIONS));
+  const [wishlist, setWishlist] = useState<WishlistItem[]>(() => loadFromStorage(STORAGE_KEYS.WISHLIST, SEED_WISHLIST));
+  const [budget, setBudget] = useState<Budget>(() => loadFromStorage(STORAGE_KEYS.BUDGET, SEED_BUDGET));
+  const [unallocated, setUnallocated] = useState(() => loadFromStorage(STORAGE_KEYS.UNALLOCATED, 0));
 
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -32,26 +60,26 @@ export default function App() {
   const [allocatingWish, setAllocatingWish] = useState<WishlistItem | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState(() => loadFromStorage(STORAGE_KEYS.SETTINGS, {
     currency: 'INR' as CurrencyCode,
     theme: 'light' as 'light' | 'dark',
     accent: '#C5703B',
     palette: 'sand',
-  });
+  }));
+
+  // Auto-save Effects
+  useEffect(() => saveToStorage(STORAGE_KEYS.SETTINGS, settings), [settings]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.USER, user), [user]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.TRANSACTIONS, transactions), [transactions]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.WISHLIST, wishlist), [wishlist]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.BUDGET, budget), [budget]);
+  useEffect(() => saveToStorage(STORAGE_KEYS.UNALLOCATED, unallocated), [unallocated]);
 
   useEffect(() => {
     setAppCurrency(settings.currency);
   }, [settings.currency]);
 
   const state = { transactions, wishlist, budget, unallocated, user };
-
-  if (!user.signedIn) {
-    return (
-      <div data-theme={settings.theme} className="native-container">
-        <LoginScreen onSignIn={(u) => setUser({ ...u, signedIn: true })} />
-      </div>
-    );
-  }
 
   const renderContent = () => {
     if (activeWish) return (
@@ -132,20 +160,44 @@ export default function App() {
 
   // Apply accent color
   useEffect(() => {
-    document.documentElement.style.setProperty('--copper', settings.accent);
-    const r = parseInt(settings.accent.slice(1, 3), 16);
-    const g = parseInt(settings.accent.slice(3, 5), 16);
-    const b = parseInt(settings.accent.slice(5, 7), 16);
-    document.documentElement.style.setProperty('--copper-tint', `rgba(${r},${g},${b},0.14)`);
+    const ACCENT_MAP: Record<string, { light: string, dark: string, softLight: string, softDark: string }> = {
+      '#C5703B': { light: '#C5703B', dark: '#E89865', softLight: '#E89865', softDark: '#F0AE82' }, // Copper
+      '#6B8E5A': { light: '#6B8E5A', dark: '#8FB079', softLight: '#8FB079', softDark: '#A6C592' }, // Eucalyptus
+      '#4A6FA5': { light: '#4A6FA5', dark: '#7B9CC9', softLight: '#7B9CC9', softDark: '#9DB8DC' }, // Indigo
+      '#B85540': { light: '#B85540', dark: '#D87560', softLight: '#D87560', softDark: '#E49282' }, // Clay
+      '#7E5A8C': { light: '#7E5A8C', dark: '#A881B5', softLight: '#A881B5', softDark: '#BD9DC8' }, // Plum
+      '#3F8E7C': { light: '#3F8E7C', dark: '#5EB09E', softLight: '#5EB09E', softDark: '#7DC0B1' }, // Sea Glass
+    };
+
+    const config = ACCENT_MAP[settings.accent] || ACCENT_MAP['#C5703B'];
+    const color = settings.theme === 'dark' ? config.dark : config.light;
+    const soft = settings.theme === 'dark' ? config.softDark : config.softLight;
+
+    document.documentElement.style.setProperty('--copper', color);
+    document.documentElement.style.setProperty('--copper-soft', soft);
+    
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    const tintOpacity = settings.theme === 'dark' ? 0.16 : 0.12;
+    document.documentElement.style.setProperty('--copper-tint', `rgba(${r},${g},${b},${tintOpacity})`);
     document.documentElement.style.setProperty('--shadow-fab', `0 6px 20px rgba(${r},${g},${b},0.35), 0 2px 6px rgba(0,0,0,0.15)`);
-  }, [settings.accent]);
+  }, [settings.accent, settings.theme]);
+
+  if (!user.signedIn) {
+    return (
+      <div data-theme={settings.theme} className="native-container">
+        <LoginScreen onSignIn={(u) => setUser({ ...u, signedIn: true })} />
+      </div>
+    );
+  }
 
   return (
     <div style={{
       height: '100vh',
       display: 'flex',
       flexDirection: 'column',
-    } as any} data-theme={settings.theme}>
+    } as any}>
       <div style={{ flex: 1, overflow: 'auto', position: 'relative' }} className="phone-scroll">
         {renderContent()}
       </div>
@@ -158,18 +210,24 @@ export default function App() {
       )}
 
       {/* Modals */}
-      <AddTransactionModal open={showAddTxn} onClose={() => setShowAddTxn(false)} onSave={(data) => {
-        if (data.type === 'recurring') {
-          setBudget(prev => {
-            const next = { ...prev };
-            // Add to needs tier as it usually represents recurring bills
-            next.tiers.needs.categories = [data, ...next.tiers.needs.categories];
-            return next;
-          });
-        } else {
-          setTransactions(prev => [data, ...prev]);
-        }
-      }} />
+      <AddTransactionModal 
+        open={showAddTxn} 
+        onClose={() => setShowAddTxn(false)} 
+        fixedCategories={state.budget.tiers.needs.categories}
+        onSave={(data) => {
+          if (data.type === 'recurring_update') {
+            setBudget(prev => {
+              const next = { ...prev };
+              next.tiers.needs.categories = next.tiers.needs.categories.map(c => 
+                c.id === data.id ? { ...c, paid: data.paid } : c
+              );
+              return next;
+            });
+          } else {
+            setTransactions(prev => [data, ...prev]);
+          }
+        }} 
+      />
       <AddWishlistModal open={showAddWish} editing={editingWish} onClose={() => { setShowAddWish(false); setEditingWish(null); }} onSave={(w) => {
         if (editingWish) setWishlist(prev => prev.map(i => i.id === w.id ? w : i));
         else setWishlist(prev => [w, ...prev]);
