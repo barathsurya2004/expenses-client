@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Transaction, WishlistItem, BudgetCategory } from '../types';
+import type { Transaction, WishlistItem, BudgetCategory, Budget } from '../types';
 import { LucideIcon } from './LucideIcon';
 import { Card, Segmented, BottomSheet, PrimaryButton, CategoryTile, CATEGORY_ICON_CHOICES, CATEGORY_COLOR_CHOICES } from './Common';
 import { fmtINR, currencySymbol, CATEGORY_LIST, PRIORITY_COLORS } from '../data';
@@ -64,51 +64,68 @@ interface AddTransactionModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (data: any) => void;
-  fixedCategories: BudgetCategory[];
+  budgetTiers: Budget['tiers'];
 }
 
-export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, onClose, onSave, fixedCategories }) => {
-  const [type, setType] = useState<'expense' | 'income' | 'recurring'>('expense');
+export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, onClose, onSave, budgetTiers }) => {
+  const [type, setType] = useState<'expense' | 'income' | 'savings' | 'recurring'>('expense');
   const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState('Dining');
+  const [category, setCategory] = useState('');
   const [merchant, setMerchant] = useState('');
   const [notes, setNotes] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [paid, setPaid] = useState(false);
+
+  const expenseCats = [...budgetTiers.needs.categories, ...budgetTiers.wants.categories].map((c: BudgetCategory) => c.name);
+  const savingsCats = budgetTiers.savings.categories.map((c: BudgetCategory) => c.name);
+  const recurringCats = budgetTiers.needs.categories.map((c: BudgetCategory) => c.name);
+  const incomeCats = ['Salary', 'Freelance', 'Investment Return', 'Other Income'];
 
   useEffect(() => {
     if (open) {
-      setType('expense'); setAmount(''); setCategory('Dining'); setMerchant(''); setNotes('');
-      setPaid(false);
+      setType('expense'); setAmount(''); setMerchant(''); setNotes(''); setPaid(false);
+      setDate(new Date().toISOString().split('T')[0]);
+      // Set default category based on type
+      const initialCats = [...budgetTiers.needs.categories, ...budgetTiers.wants.categories].map(c => c.name);
+      setCategory(initialCats[0] || '');
     }
-  }, [open]);
+  }, [open, budgetTiers]);
 
   useEffect(() => {
-    if (type === 'recurring' && fixedCategories.length > 0) {
-      setCategory(fixedCategories[0].name);
-      setPaid(fixedCategories[0].paid || false);
+    let nextCats: string[] = [];
+    if (type === 'expense') nextCats = expenseCats;
+    else if (type === 'savings') nextCats = savingsCats;
+    else if (type === 'recurring') nextCats = recurringCats;
+    else if (type === 'income') nextCats = incomeCats;
+    
+    if (nextCats.length > 0 && !nextCats.includes(category)) {
+      setCategory(nextCats[0]);
     }
-  }, [type, fixedCategories]);
 
-  const incomeCats = ['Salary', 'Other Income'];
-  const expenseCats = CATEGORY_LIST.filter(c => c !== 'Salary');
-  const cats = type === 'income' ? incomeCats : (type === 'recurring' ? fixedCategories.map(c => c.name) : expenseCats);
+    if (type === 'recurring') {
+      const cat = budgetTiers.needs.categories.find(c => c.name === category);
+      if (cat) setPaid(cat.paid || false);
+    }
+  }, [type, budgetTiers, category]);
+
+  const cats = type === 'income' ? incomeCats : (type === 'savings' ? savingsCats : (type === 'recurring' ? recurringCats : expenseCats));
 
   const submit = () => {
     if (type === 'recurring') {
-      const cat = fixedCategories.find(c => c.name === category);
+      const cat = budgetTiers.needs.categories.find(c => c.name === category);
       if (!cat) return;
       onSave({ ...cat, paid, type: 'recurring_update' });
     } else {
       const n = parseFloat(amount);
       if (!n || n <= 0) return;
       onSave({
-        id: 't_' + Math.random().toString(36).slice(2, 8),
+        id: (type === 'savings' ? 's_' : 't_') + Math.random().toString(36).slice(2, 8),
         amount: n,
-        category: type === 'income' ? (incomeCats.includes(category) ? category : 'Salary') : category,
-        merchant: merchant || (type === 'income' ? 'Income' : 'Quick add'),
-        date: new Date().toISOString(),
-        type,
-        status: 'pending',
+        category: category,
+        merchant: merchant || (type === 'income' ? 'Income' : (type === 'savings' ? 'Savings' : 'Quick add')),
+        date: new Date(date).toISOString(),
+        type: type === 'savings' ? 'expense' : type as any, // Savings are recorded as expense in ledger to reduce 'Safe to Spend'
+        status: 'cleared',
         tags: notes ? [notes.toLowerCase().split(' ')[0]] : [],
       });
     }
@@ -118,7 +135,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, 
   return (
     <BottomSheet
       open={open} onClose={onClose} title="Add Entry"
-      footer={<PrimaryButton variant="copper" onClick={submit} disabled={type !== 'recurring' && !amount} icon="check">
+      footer={<PrimaryButton variant="copper" onClick={submit} disabled={(type !== 'recurring' && !amount) || (type !== 'income' && !category)} icon="check">
         {type === 'recurring' ? 'Update Status' : 'Add to Ledger'}
       </PrimaryButton>}
     >
@@ -129,6 +146,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, 
           options={[
             { value: 'expense', label: 'Expense' },
             { value: 'income', label: 'Income' },
+            { value: 'savings', label: 'Savings' },
             { value: 'recurring', label: 'Recurring' }
           ]}
         />
@@ -136,7 +154,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, 
         {type !== 'recurring' && (
           <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-3)', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8 }}>Amount</div>
-            <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, color: type === 'income' ? 'var(--green)' : 'var(--ink)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'baseline', gap: 6, color: type === 'income' ? 'var(--green)' : (type === 'savings' ? 'var(--blue)' : 'var(--ink)') }}>
               <span style={{ fontSize: 28, fontWeight: 500, letterSpacing: -0.5 }}>{(type === 'income' ? '+' : '') + currencySymbol()}</span>
               <input type="number" inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0" autoFocus style={{ width: 220, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', fontSize: 64, fontWeight: 600, letterSpacing: -2, color: 'inherit', textAlign: 'left', fontVariantNumeric: 'tabular-nums' }} />
             </div>
@@ -145,24 +163,33 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ open, 
 
         <Card padding={0} style={{ overflow: 'hidden' }}>
           <ModalRow label="Category">
-            <select value={category} onChange={e => {
-              const val = e.target.value;
-              setCategory(val);
-              if (type === 'recurring') {
-                const cat = fixedCategories.find(c => c.name === val);
-                if (cat) setPaid(cat.paid || false);
-              }
-            }} style={selectStyle}>
-              {cats.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            {cats.length > 0 ? (
+              <select value={category} onChange={e => {
+                const val = e.target.value;
+                setCategory(val);
+                if (type === 'recurring') {
+                  const cat = budgetTiers.needs.categories.find(c => c.name === val);
+                  if (cat) setPaid(cat.paid || false);
+                }
+              }} style={selectStyle}>
+                {cats.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            ) : (
+              <div style={{ fontSize: 14, color: 'var(--clay)', fontWeight: 600 }}>No categories in budget</div>
+            )}
           </ModalRow>
           
           {type !== 'recurring' && (
             <>
               <Divider />
-              <ModalRow label="Merchant"><input value={merchant} onChange={e => setMerchant(e.target.value)} placeholder="Where?" style={inputStyle} /></ModalRow>
+              <ModalRow label={type === 'savings' ? 'Note' : 'Merchant'}>
+                <input value={merchant} onChange={e => setMerchant(e.target.value)} placeholder={type === 'savings' ? 'Where is it going?' : 'Where?'} style={inputStyle} />
+              </ModalRow>
               <Divider />
-              <ModalRow label="Date"><div style={{ color: 'var(--ink-2)', fontSize: 16 }}>Today, May 14</div></ModalRow>
+              <ModalRow label="Date">
+                <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                       style={{ ...inputStyle, background: 'var(--surface-3)', padding: '6px 10px', borderRadius: 8, fontSize: 15 }} />
+              </ModalRow>
             </>
           )}
 
@@ -198,10 +225,11 @@ interface AddWishlistModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (wish: WishlistItem) => void;
+  onDelete: (id: string) => void;
   editing: WishlistItem | null;
 }
 
-export const AddWishlistModal: React.FC<AddWishlistModalProps> = ({ open, onClose, onSave, editing }) => {
+export const AddWishlistModal: React.FC<AddWishlistModalProps> = ({ open, onClose, onSave, onDelete, editing }) => {
   const [step, setStep] = useState<'choose' | 'url' | 'form'>('choose');
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
@@ -289,10 +317,21 @@ export const AddWishlistModal: React.FC<AddWishlistModalProps> = ({ open, onClos
                         : 'Review details';
 
   const footer = step === 'form'
-    ? <PrimaryButton variant="copper" onClick={submit} disabled={!name || !price}
-        icon={editing ? 'check' : 'plus'}>
-        {editing ? 'Save Changes' : 'Add to Wishlist'}
-      </PrimaryButton>
+    ? (
+      <div style={{ display: 'flex', gap: 8 }}>
+        {editing && (
+          <PrimaryButton variant="clay" fullWidth={false} icon="trash" onClick={() => { onDelete(editing.id); onClose(); }}>
+            Delete
+          </PrimaryButton>
+        )}
+        <div style={{ flex: 1 }}>
+          <PrimaryButton variant="copper" onClick={submit} disabled={!name || !price}
+            icon={editing ? 'check' : 'plus'}>
+            {editing ? 'Save Changes' : 'Add to Wishlist'}
+          </PrimaryButton>
+        </div>
+      </div>
+    )
     : step === 'url'
       ? <PrimaryButton variant="copper" onClick={runCrawl}
           disabled={!crawlUrl.trim() || crawling} icon="sparkles">
@@ -479,18 +518,20 @@ interface EditCategoryModalProps {
   onClose: () => void;
   category: BudgetCategory | null;
   onSave: (cat: BudgetCategory, tier: string, mode: 'edit' | 'new') => void;
+  onDelete: (id: string, tier: string) => void;
   currentTier: string;
   mode?: 'edit' | 'new';
 }
 
-export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ open, onClose, category, onSave, currentTier, mode = 'edit' }) => {
+export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ open, onClose, category, onSave, onDelete, currentTier, mode = 'edit' }) => {
   const [name, setName] = useState('');
   const [limit, setLimit] = useState('');
   const [tier, setTier] = useState('wants');
   const [frequency, setFrequency] = useState('monthly');
   const [customCount, setCustomCount] = useState('2');
   const [customUnit, setCustomUnit] = useState<'days' | 'weeks' | 'months'>('weeks');
-  const [due, setDue] = useState('');
+  const [dueDay, setDueDay] = useState<number>(1);
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [icon, setIcon] = useState('tag');
   const [color, setColor] = useState('plum');
 
@@ -503,12 +544,14 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ open, onCl
         setFrequency(category.frequency || 'monthly');
         setCustomCount(String(category.customCount || 2));
         setCustomUnit(category.customUnit || 'weeks');
-        setDue(category.due || '');
+        setDueDay(category.dueDay || 1);
+        setStartDate(category.startDate || new Date().toISOString().split('T')[0]);
         setIcon(category.icon || 'tag');
         setColor(category.color || 'plum');
       } else {
         setName(''); setLimit(''); setTier(currentTier || 'wants');
-        setFrequency('monthly'); setCustomCount('2'); setCustomUnit('weeks'); setDue('');
+        setFrequency('monthly'); setCustomCount('2'); setCustomUnit('weeks'); 
+        setDueDay(1); setStartDate(new Date().toISOString().split('T')[0]);
         setIcon(currentTier === 'needs' ? 'receipt' : 'tag');
         setColor(currentTier === 'needs' ? 'blue' : 'plum');
       }
@@ -544,18 +587,35 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ open, onCl
         out.customUnit = customUnit;
       }
       out.paid = mode === 'edit' ? (category!.paid ?? false) : false;
-      if (due) out.due = due;
+      out.dueDay = dueDay;
+      out.startDate = startDate;
+      out.due = `Day ${dueDay}`;
     }
     onSave(out, tier, mode);
     onClose();
   };
 
+  const footer = (
+    <div style={{ display: 'flex', gap: 8 }}>
+      {mode === 'edit' && category && (
+        <PrimaryButton variant="clay" fullWidth={false} icon="trash" onClick={() => { onDelete(category.id, currentTier); onClose(); }}>
+          Delete
+        </PrimaryButton>
+      )}
+      <div style={{ flex: 1 }}>
+        <PrimaryButton variant="copper" onClick={submit} icon="check"
+          disabled={mode === 'new' && !name.trim()}>
+          {mode === 'new' ? 'Add Category' : 'Save Changes'}
+        </PrimaryButton>
+      </div>
+    </div>
+  );
+
   return (
     <BottomSheet
       open={open} onClose={onClose}
       title={mode === 'new' ? 'New Category' : 'Edit ' + (category?.name || '')}
-      footer={<PrimaryButton variant="copper" onClick={submit} icon="check"
-        disabled={mode === 'new' && !name.trim()}>{mode === 'new' ? 'Add Category' : 'Save'}</PrimaryButton>}
+      footer={footer}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {mode === 'new' && (
@@ -582,10 +642,14 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ open, onCl
           {isFixed && (
             <>
               <Divider />
-              <ModalRow label="Due date">
-                <input value={due} onChange={e => setDue(e.target.value)}
-                       placeholder="May 28"
+              <ModalRow label="Due Day (1-31)">
+                <input type="number" min={1} max={31} value={dueDay} onChange={e => setDueDay(parseInt(e.target.value) || 1)}
                        style={inputStyle} />
+              </ModalRow>
+              <Divider />
+              <ModalRow label="Start Date">
+                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
+                       style={{ ...inputStyle, background: 'var(--surface-3)', padding: '6px 10px', borderRadius: 8 }} />
               </ModalRow>
             </>
           )}

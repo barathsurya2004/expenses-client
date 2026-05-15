@@ -184,7 +184,8 @@ function TrendsView() {
   };
 
   const anomalies = cats.map(c => {
-    const data = SEED_HISTORY[c];
+    const data = SEED_HISTORY[c] || [];
+    if (data.length < 2) return { cat: c, growing: false };
     let growth = 0;
     for (let i = 1; i < data.length - 1; i++) {
       if (data[i] > data[i - 1]) growth++;
@@ -193,30 +194,40 @@ function TrendsView() {
     return { cat: c, growing: growth >= 3 };
   }).filter(a => a.growing);
 
+  const hasData = cats.some(c => (SEED_HISTORY[c] || []).length > 0);
+
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '0 16px' }}>
       <Card padding={18}>
         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 }}>12-Month Trend</div>
         <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink)', letterSpacing: -0.3, marginBottom: 14 }}>Categorical Explorer</div>
-        <TrendChart selected={selected} colors={colors} />
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
-          {cats.map(c => {
-            const on = selected.has(c);
-            return (
-              <div key={c} onClick={() => toggle(c)} className="press" style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '6px 10px', borderRadius: 8,
-                background: on ? colors[c] + '20' : 'var(--surface-3)',
-                border: on ? '1px solid ' + colors[c] : '1px solid transparent',
-                fontSize: 12, fontWeight: 600,
-                color: on ? colors[c] : 'var(--ink-3)',
-              }}>
-                <div style={{ width: 7, height: 7, borderRadius: 2, background: colors[c], opacity: on ? 1 : 0.4 }} />
-                {c}
-              </div>
-            );
-          })}
-        </div>
+        {!hasData ? (
+          <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--ink-4)', fontSize: 14 }}>
+            Not enough transaction history yet to plot trends.
+          </div>
+        ) : (
+          <>
+            <TrendChart selected={selected} colors={colors} />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
+              {cats.map(c => {
+                const on = selected.has(c);
+                return (
+                  <div key={c} onClick={() => toggle(c)} className="press" style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '6px 10px', borderRadius: 8,
+                    background: on ? colors[c] + '20' : 'var(--surface-3)',
+                    border: on ? '1px solid ' + colors[c] : '1px solid transparent',
+                    fontSize: 12, fontWeight: 600,
+                    color: on ? colors[c] : 'var(--ink-3)',
+                  }}>
+                    <div style={{ width: 7, height: 7, borderRadius: 2, background: colors[c], opacity: on ? 1 : 0.4 }} />
+                    {c}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </Card>
 
       {anomalies.length > 0 && (
@@ -232,7 +243,7 @@ function TrendsView() {
             }}>
               <span style={{ color: 'var(--clay)', fontWeight: 600 }}>{a.cat}</span> has been climbing month-over-month. Up{' '}
               <span className="num" style={{ fontWeight: 700, color: 'var(--ink)' }}>
-                {Math.round((SEED_HISTORY[a.cat][10] - SEED_HISTORY[a.cat][0]) / SEED_HISTORY[a.cat][0] * 100)}%
+                {Math.round(((SEED_HISTORY[a.cat]?.[10] || 0) - (SEED_HISTORY[a.cat]?.[0] || 0)) / (SEED_HISTORY[a.cat]?.[0] || 1) * 100)}%
               </span>{' '}
               from a year ago.
             </div>
@@ -248,13 +259,13 @@ function TrendChart({ selected, colors }: { selected: Set<string>, colors: Recor
   const padL = 8, padR = 8, padT = 8, padB = 22;
   const innerW = W - padL - padR, innerH = H - padT - padB;
 
-  const cats = Array.from(selected);
+  const cats = Array.from(selected).filter(c => (SEED_HISTORY[c] || []).length > 0);
   if (cats.length === 0) {
     return <div style={{ height: H, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-4)', fontSize: 13 }}>Select categories below to plot</div>;
   }
 
-  const all = cats.flatMap(c => SEED_HISTORY[c]);
-  const maxY = Math.max(...all) * 1.1;
+  const all = cats.flatMap(c => SEED_HISTORY[c] || []);
+  const maxY = Math.max(...all, 100) * 1.1;
 
   const x = (i: number) => padL + (i / 11) * innerW;
   const y = (v: number) => padT + innerH - (v / maxY) * innerH;
@@ -269,11 +280,12 @@ function TrendChart({ selected, colors }: { selected: Set<string>, colors: Recor
               stroke="var(--divider)" strokeWidth="0.5" />
       ))}
       {cats.map(c => {
-        const pts = SEED_HISTORY[c].map((v, i) => `${x(i)},${y(v)}`).join(' L ');
+        const data = SEED_HISTORY[c] || [];
+        const pts = data.map((v, i) => `${x(i)},${y(v)}`).join(' L ');
         return (
           <g key={c}>
             <path d={'M ' + pts} fill="none" stroke={colors[c]} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            {SEED_HISTORY[c].map((v, i) => (
+            {data.map((v, i) => (
               <circle key={i} cx={x(i)} cy={y(v)} r="2.5" fill="var(--surface)" stroke={colors[c]} strokeWidth="1.5" />
             ))}
           </g>

@@ -39,6 +39,9 @@ export interface BudgetCategory {
   customUnit?: 'days' | 'weeks' | 'months';
   paid?: boolean;
   due?: string;
+  dueDay?: number;
+  startDate?: string;
+  lastProcessedMonth?: string; // YYYY-MM
   notes?: string;
 }
 

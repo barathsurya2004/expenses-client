@@ -33,7 +33,7 @@ export const WishlistDetail: React.FC<WishlistDetailProps> = ({ item, state, onB
 
   const etaDate = useMemo(() => {
     if (funded) return null;
-    const d = new Date('2026-05-14');
+    const d = new Date();
     d.setDate(d.getDate() + months * 30);
     return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   }, [funded, months]);

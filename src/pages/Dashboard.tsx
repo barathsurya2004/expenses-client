@@ -21,24 +21,51 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ state, setActiveTab, onEditTxn, onOpenWish, onOpenSettings }) => {
   const { transactions, wishlist, budget, user } = state;
 
-  // Computations
-  const monthSpend = useMemo(() =>
-    transactions
-      .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === 4) // May 2026
-      .reduce((a, t) => a + t.amount, 0)
-  , [transactions]);
-
-  const monthIncome = budget.income;
-  const totalBudget = Object.values(budget.tiers)
-    .flatMap(t => t.categories)
-    .reduce((a, c) => a + c.limit, 0);
-
-  // Days left in month (Today = May 14, May has 31 days)
-  const today = 14, daysInMonth = 31;
+  // Time context
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  const today = now.getDate();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysLeft = daysInMonth - today;
 
-  const safeToSpend = totalBudget - monthSpend;
+  // Dynamic calculations from transactions
+  const monthIncome = useMemo(() =>
+    transactions
+      .filter(t => t.type === 'income' && new Date(t.date).getMonth() === currentMonth && new Date(t.date).getFullYear() === currentYear)
+      .reduce((a, t) => a + t.amount, 0)
+  , [transactions, currentMonth, currentYear]);
+
+  const monthSpend = useMemo(() =>
+    transactions
+      .filter(t => t.type === 'expense' && new Date(t.date).getMonth() === currentMonth && new Date(t.date).getFullYear() === currentYear)
+      .reduce((a, t) => a + t.amount, 0)
+  , [transactions, currentMonth, currentYear]);
+
+  // Budget-based planned costs (Fixed + Savings)
+  const plannedFixed = budget.tiers.needs.categories.reduce((a, c) => a + c.limit, 0);
+  const plannedSavings = budget.tiers.savings.categories.reduce((a, c) => a + c.limit, 0);
+  const totalPlannedMandatory = plannedFixed + plannedSavings;
+
+  // Safe to Spend = Current Income - Planned Mandatory Costs - Other Discretionary Spend so far
+  // Note: We only count discretionary spend that isn't already part of 'fixed' categories
+  const discretionarySpend = useMemo(() => {
+    const fixedCatNames = new Set(budget.tiers.needs.categories.map(c => c.name));
+    return transactions
+      .filter(t => 
+        t.type === 'expense' && 
+        new Date(t.date).getMonth() === currentMonth && 
+        new Date(t.date).getFullYear() === currentYear &&
+        !fixedCatNames.has(t.category)
+      )
+      .reduce((a, t) => a + t.amount, 0);
+  }, [transactions, budget, currentMonth, currentYear]);
+
+  const safeToSpend = monthIncome - totalPlannedMandatory - discretionarySpend;
   const dailyBurn = daysLeft > 0 ? Math.max(0, safeToSpend / daysLeft) : 0;
+
+  // Total monthly limit for progress bar (Income - Savings Target)
+  const monthlyAllowance = monthIncome - plannedSavings;
 
   // Alerts
   const alerts: { tone: 'warn' | 'info' | 'pos', text: string }[] = [
@@ -100,12 +127,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, setActiveTab, onEdi
           <div style={{
             fontSize: 13, fontWeight: 600, color: 'var(--ink-3)',
             letterSpacing: 0.4, textTransform: 'uppercase',
-          }}>Thursday · May 14</div>
+          }}>
+            {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </div>
           <div style={{
             fontSize: 28, fontWeight: 700, color: 'var(--ink)',
             letterSpacing: -0.6, marginTop: 2,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>Good morning, {(user?.name || 'friend').split(' ')[0]}</div>
+          }}>
+            {now.getHours() < 12 ? 'Good morning' : now.getHours() < 17 ? 'Good afternoon' : 'Good evening'}, {(user?.name || 'friend').split(' ')[0]}
+          </div>
         </div>
         <div onClick={onOpenSettings} className="press" style={{
           width: 38, height: 38, borderRadius: 12,
@@ -150,10 +181,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ state, setActiveTab, onEdi
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 12 }}>
               <span style={{ color: 'var(--ink-3)', fontWeight: 600, letterSpacing: 0.2 }}>SPENT THIS MONTH</span>
               <span className="num" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>
-                <AnimatedRupees value={monthSpend} /> / {fmtINR(totalBudget)}
+                <AnimatedRupees value={monthSpend} /> / {fmtINR(monthlyAllowance)}
               </span>
             </div>
-            <ProgressBar value={monthSpend} max={totalBudget} color="copper" height={6} />
+            <ProgressBar value={monthSpend} max={monthlyAllowance} color="copper" height={6} />
           </div>
         </Card>
       </div>
