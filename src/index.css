@@ -1,0 +1,151 @@
+:root {
+  /* light theme — warm sand */
+  --bg: #F4F1EC;
+  --bg-2: #EBE7DF;
+  --surface: #FFFFFF;
+  --surface-2: #FBF9F5;
+  --surface-3: #F0EDE6;
+  --ink: #1B1813;
+  --ink-2: #4A4640;
+  --ink-3: #8C857A;
+  --ink-4: #B8B1A4;
+  --divider: rgba(27, 24, 19, 0.08);
+  --hairline: rgba(27, 24, 19, 0.05);
+
+  /* signature copper */
+  --copper: #C5703B;
+  --copper-soft: #E89865;
+  --copper-tint: rgba(197, 112, 59, 0.12);
+
+  /* states */
+  --green: #6B8E5A;       /* muted eucalyptus */
+  --green-tint: rgba(107, 142, 90, 0.14);
+  --amber: #C58A3B;
+  --amber-tint: rgba(197, 138, 59, 0.14);
+  --clay: #B85540;        /* soft clay danger */
+  --clay-tint: rgba(184, 85, 64, 0.14);
+  --blue: #4A6FA5;
+  --blue-tint: rgba(74, 111, 165, 0.14);
+  --plum: #7E5A8C;
+  --plum-tint: rgba(126, 90, 140, 0.14);
+
+  /* numbers */
+  --shadow-card: 0 1px 2px rgba(27,24,19,0.04), 0 8px 24px rgba(27,24,19,0.04);
+  --shadow-fab: 0 6px 20px rgba(197,112,59,0.35), 0 2px 6px rgba(27,24,19,0.15);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+[data-theme="dark"] {
+  --bg: #0E0C0A;
+  --bg-2: #16140F;
+  --surface: #1C1916;
+  --surface-2: #221F1B;
+  --surface-3: #2A2620;
+  --ink: #F4F1EB;
+  --ink-2: #C9C3B7;
+  --ink-3: #8C857A;
+  --ink-4: #5E5850;
+  --divider: rgba(244, 241, 235, 0.08);
+  --hairline: rgba(244, 241, 235, 0.05);
+
+  --copper: #E89865;
+  --copper-soft: #F0AE82;
+  --copper-tint: rgba(232, 152, 101, 0.16);
+
+  --green: #8FB079;
+  --green-tint: rgba(143, 176, 121, 0.18);
+  --amber: #D9A45A;
+  --amber-tint: rgba(217, 164, 90, 0.18);
+  --clay: #D87560;
+  --clay-tint: rgba(216, 117, 96, 0.18);
+  --blue: #7B9CC9;
+  --blue-tint: rgba(123, 156, 201, 0.18);
+  --plum: #A881B5;
+  --plum-tint: rgba(168, 129, 181, 0.18);
+
+  --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.25);
+  --shadow-fab: 0 6px 20px rgba(232,152,101,0.25), 0 2px 6px rgba(0,0,0,0.3);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: #1a1a1a;
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+}
+
+#root { 
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 100px rgba(0,0,0,0.1);
+}
+
+.native-container {
+  height: 100vh;
+  background: var(--bg);
+}
+
+/* tabular nums everywhere we put numbers */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* hide scrollbars inside phone */
+.phone-scroll::-webkit-scrollbar { display: none; }
+.phone-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* fade-in on tab switch */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 360ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+/* sheet slide */
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.sheet-up { animation: sheetUp 380ms cubic-bezier(0.2, 0.85, 0.2, 1) both; }
+
+@keyframes sheetBgIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.sheet-bg-in { animation: sheetBgIn 280ms ease-out both; }
+
+/* press */
+.press { transition: transform 120ms ease, opacity 120ms ease; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.press:active { transform: scale(0.97); opacity: 0.85; }
+
+/* number flip */
+.num-flip {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: baseline;
+}
+
+@keyframes shimmerSlide {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes spin360 {
+  to { transform: rotate(360deg); }
+}
